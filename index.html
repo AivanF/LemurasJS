@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>LemurasJS Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="description" content="Comfortable ECG wearable devices for people all over the world">
+    <script src="./lemuras.js"></script>
+</head>
+<body>
+LemurasJS is available in console...
+<br>
+<a href="https://github.com/AivanF/LemurasJS">GitHub page</a>
+<script type="text/javascript">
+	console.log('LemurasJS content:')
+	console.log(lemuras);
+	var columns = ['name', 'value'];
+	var rows = [
+		['pi', 3.1415926535],
+		['e', 2.7182818284],
+	];
+	var t = new lemuras.Table(columns, rows, 'MyTable');
+	t.columns = ['key', 'value'];
+	console.log(t);
+	var c = t.column('key');
+	// var c = lemuras.Column.make_index(5);
+	c = c.apply('isin', [undefined, ['pi']]);
+	console.log(c);
+	// console.log(c.get_type());
+	// console.log(t.cell('key', 1));
+</script>
+</body>
+</html>
