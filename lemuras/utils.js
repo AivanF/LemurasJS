@@ -1,3 +1,4 @@
+// https://github.com/AivanF/LemurasJS
 
 function is_undefined(value) {
     return typeof value === 'undefined';

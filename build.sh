@@ -1,6 +1,9 @@
 
 echo "----- Building Lemuras JS -----"
 
+printf "Lines of code: "
+find ./lemuras "(" -name "*.js" ")" -print0 | xargs -0 wc -l | tail -1 | awk '{print $1;}'
+
 # Combine files
 ncc build ./lemuras/init.js -o dist
 
