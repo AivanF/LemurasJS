@@ -33,11 +33,8 @@ LemurasJS is available in console...
 		console.log(c.get_type());
 		// console.log(t.cell('key', 1));
 
-		// var f = lemuras.utils.formula('!(a + b) >= c.lol("(\\" ")');
-		// console.log(lemuras.utils.format('"{}" => "{}"', [f.source, f.parsed]));
-
-		var f = lemuras.utils.formula('( (tbl[["id"]]+tbl[["value"]]) -3 *100 ).apply("int") %10 >2', ['tbl']);
-		console.log(lemuras.utils.format('"{}" => "{}"', [f.source, f.parsed]));
+		var f = lemuras.formula('( (tbl[["id"]]+tbl[["value"]]) -3 *(5\\*20) ).apply("int") %10 >2', ['tbl']);
+		console.log('"{}" => "{}"'.format(f.source, f.parsed));
 		c = f(t);
 		console.log(c);
 	}

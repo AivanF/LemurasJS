@@ -94,131 +94,15 @@ String.prototype.replaceAll = function(search, replacement) {
     return this.split(search).join(replacement);
 }
 
-function format(txt, args) {
-    var res = txt;
-    for (var i = 0; i < args.length; i++) {
-        res = res.replace('{' + i + '}', '' + args[i]);
-        res = res.replace('{}', '' + args[i]);
+String.prototype.format = function() {
+    var res = this;
+    for (var i = 0; i < arguments.length; i++) {
+        res = res.replace('{' + i + '}', '' + arguments[i]);
+        res = res.replace('{}', '' + arguments[i]);
     }
     return res;
 }
 
-
-var formula_op2 = {
-    '&': 'band',
-    '|': 'bor',
-    '^': 'bxor',
-
-    '&&': 'and',
-    '||': 'or',
-    '^^': 'xor',
-
-    '+': 'add',
-    '-': 'sub',
-    '*': 'mul',
-    '/': 'div',
-    '%': 'mod',
-    '**': 'pow',
-
-    '>': 'gt',
-    '<': 'lt',
-    '>=': 'ge',
-    '<=': 'le',
-    '==': 'eq',
-    '!=': 'ne',
-}
-
-var formula_op1 = {
-    '!': 'inv',
-    '#': 'abs',
-}
-
-function parse_formula(code) {
-    // Translate tbl["field"] to tbl.column("field")
-    code = code.replaceAll('[[', '.column(');
-    code = code.replaceAll(']]', ')');
-    // Translate operations
-    var cur, nex, prev = null;
-    var quote_mode = null; // null or ' or "
-    var op;
-    var to_close = []; // list of opened_par values
-    var doors = {}; // for unary operations
-    var opened_par = 0;
-    var res = '';
-    function try_close() {
-        if (opened_par == to_close[to_close.length-1]) {
-            if (doors[opened_par]) {
-                res += doors[opened_par];
-                doors[opened_par] = null;
-            }
-            res += ')';
-            to_close.splice(-1, 1); // remove last value
-        }
-    }
-    code += ' '; // to always have next
-    for (var i = 0; i < code.length-1; i++) {
-        cur = code[i];
-        nex = code[i+1];
-        if (quote_mode) {
-            if (cur == quote_mode && prev != '\\') {
-                quote_mode = null;
-            }
-            res += cur;
-        } else {
-            if (cur == '"') {
-                quote_mode = '"';
-                res += cur;
-            } else if (cur == "'") {
-                quote_mode = "'";
-                res += cur;
-            } else {
-                op = formula_op1[cur];
-                if (op) {
-                    to_close.push(opened_par);
-                    doors[opened_par] = '.' + op + '(';
-                } else {
-                    op = formula_op2[cur + nex];
-                    if (op) {
-                        i++;
-                    } else {
-                        op = formula_op2[cur];
-                    }
-                    if (op) {
-                        try_close();
-                        res += '.' + op + '(';
-                        to_close.push(opened_par);
-                    } else {
-                        if (cur == ' ') {
-                            ; // don't add whitespaces
-                        } else {
-                            res += cur;
-                            if (cur == '(') {
-                                opened_par++;
-                            } else if (cur == ')') {
-                                try_close();
-                                opened_par--;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        prev = cur;
-    }
-    try_close();
-    return res;
-}
-
-function formula(source_code, args) {
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
-    var parsed = parse_formula(source_code);
-    args = args || [];
-    args = [null].concat(args.concat(['return ' + parsed + ';']));
-    var res = new (Function.prototype.bind.apply(Function, args));
-    res.source = source_code;
-    res.parsed = parsed;
-    return res;
-}
 
 module.exports = {
     is_undefined: is_undefined,
@@ -228,6 +112,4 @@ module.exports = {
     repr_cell: repr_cell,
     get_type: get_type,
     partial: partial,
-    format: format,
-    formula: formula,
 };
