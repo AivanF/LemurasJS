@@ -123,15 +123,25 @@ var formula_op2 = {
     '!=': 'ne',
 }
 
+var formula_op1 = {
+    '!': 'inv',
+    '#': 'abs',
+}
+
 function parse_formula(code) {
     var cur, nex, prev = null;
     var quote_mode = null; // null or ' or "
     var op;
     var to_close = []; // list of opened_par values
+    var doors = {}; // for unary operations
     var opened_par = 0;
     var res = '';
     function try_close() {
         if (opened_par == to_close[to_close.length-1]) {
+            if (doors[opened_par]) {
+                res += doors[opened_par];
+                doors[opened_par] = null;
+            }
             res += ')';
             to_close.splice(-1, 1); // remove last value
         }
@@ -153,23 +163,29 @@ function parse_formula(code) {
                 quote_mode = "'";
                 res += cur;
             } else {
-                op = formula_op2[cur + nex];
+                op = formula_op1[cur];
                 if (op) {
-                    i++;
-                } else {
-                    op = formula_op2[cur];
-                }
-                if (op) {
-                    try_close();
-                    res += '.' + op + '(';
                     to_close.push(opened_par);
+                    doors[opened_par] = '.' + op + '(';
                 } else {
-                    res += cur;
-                    if (cur == '(') {
-                        opened_par++;
-                    } else if (cur == ')') {
+                    op = formula_op2[cur + nex];
+                    if (op) {
+                        i++;
+                    } else {
+                        op = formula_op2[cur];
+                    }
+                    if (op) {
                         try_close();
-                        opened_par--;
+                        res += '.' + op + '(';
+                        to_close.push(opened_par);
+                    } else {
+                        res += cur;
+                        if (cur == '(') {
+                            opened_par++;
+                        } else if (cur == ')') {
+                            try_close();
+                            opened_par--;
+                        }
                     }
                 }
             }
@@ -180,15 +196,17 @@ function parse_formula(code) {
     return res;
 }
 
-function create_formula(code, args) {
+function formula(source_code, args) {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
     // a+b+c => a.add(b).add(c)
     // (a+b)*c => (a.add(b)).mult(c)
-    code = 'return ' + parse_formula(code) + ';';
+    var parsed = parse_formula(source_code)
     args = args || [];
-    args = [null].concat(args.concat([code]));
-    console.log(null, 'args', args);
-    return new (Function.prototype.bind.apply(Function, args));
+    args = [null].concat(args.concat(['return ' + parsed + ';']));
+    var res = new (Function.prototype.bind.apply(Function, args));
+    res.source = source_code;
+    res.parsed = parsed;
+    return res;
 }
 
 module.exports = {
@@ -200,6 +218,5 @@ module.exports = {
     get_type: get_type,
     partial: partial,
     format: format,
-    parse_formula: parse_formula,
-    create_formula: create_formula,
+    formula: formula,
 };

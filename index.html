@@ -33,10 +33,8 @@ LemurasJS is available in console...
 		console.log(c.get_type());
 		// console.log(t.cell('key', 1));
 
-		var fc1 = '(a+b)>=c.lol("(")';
-		var fc2 = lemuras.utils.parse_formula(fc1);
-		console.log(lemuras.utils.format('"{}" => "{}"', [fc1, fc2]));
-		// var f = lemuras.utils.create_formula('c.toString()', ['c']);
+		var f = lemuras.utils.formula('!(a+b)>=c.lol("(")');
+		console.log(lemuras.utils.format('"{}" => "{}"', [f.source, f.parsed]));
 		// console.log(f);
 		// console.log(f(c));
 	}
