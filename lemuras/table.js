@@ -67,10 +67,31 @@ Table.prototype.column = function (column) {
 };
 
 Table.prototype.set_column = function (column, data) {
-    if (this.column_indices[column]) {
-        ;
+    if (this.rowcnt != data.length) {
+        throw Error('Table.set_column column length ({}) must be equal to table rows count ({})'.format(data.length, this.rowcnt));
+    }
+    var ind = this.column_indices[column];
+    if (ind) {
+        if (data instanceof m_column.Column) {
+            for (var i = this.rowcnt - 1; i >= 0; i--) {
+                this.rows[i][ind] = data.get_value(i);
+            }
+        } else {
+            for (var i = this.rowcnt - 1; i >= 0; i--) {
+                this.rows[i][ind] = data[i];
+            }
+        }
     } else {
-        ;
+        this._columns.push(column);
+        if (data instanceof m_column.Column) {
+            for (var i = this.rowcnt - 1; i >= 0; i--) {
+                this.rows[i].push(data.get_value(i));
+            }
+        } else {
+            for (var i = this.rowcnt - 1; i >= 0; i--) {
+                this.rows[i].push(data[i]);
+            }
+        }
     }
 };
 
