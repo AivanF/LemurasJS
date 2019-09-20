@@ -31,8 +31,9 @@ var formula_op1 = {
 }
 
 function parse_formula(code) {
-    code = code.replaceAll('[[', '.column(');
-    code = code.replaceAll(']]', ')');
+    // TODO: add column.agg() support
+    // TODO: transform table[["field"]]=... to table.set_column("field", ...)
+
     // Translate operations
     var cur, nex, prev = null;
     var quote_mode = null; // null or ' or "
@@ -105,12 +106,19 @@ function parse_formula(code) {
         prev = cur;
     }
     try_close();
+    if (opened_par != 0) {
+        throw new SyntaxError('Bad parentheses count!');
+    }
+    // Translate tbl["field"] to tbl.column("field")
+    res = res.replaceAll('[[', '.column(');
+    res = res.replaceAll(']]', ')');
     return res;
 }
 
 function formula(source_code, args) {
-    var parsed = parse_formula(source_code);
+    var parsed = null;
     try {
+        parsed = parse_formula(source_code);
         args = args || [];
         args = [null].concat(args.concat(['return ' + parsed + ';']));
         var res = new (Function.prototype.bind.apply(Function, args));
@@ -118,7 +126,7 @@ function formula(source_code, args) {
         res.parsed = parsed;
         return res;
     } catch (err) {
-        throw 'Got {}: {}\nParsing {}\nTo {}'.format(err.name, err.message, source_code, parsed);
+        throw new SyntaxError('Got {}: {}\nParsing {}\nTo {}'.format(err.name, err.message, source_code, parsed));
     }
 }
 
