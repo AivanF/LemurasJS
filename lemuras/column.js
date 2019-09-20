@@ -120,7 +120,59 @@ Column.prototype.apply = function (task, defaults, separate) {
     }
 };
 
+Column.prototype.calc = function (task, defaults) {
+    if (m_utils.is_string(task)) {
+        if (m_processing.aggfuns[task]) {
+            task = m_processing.aggfuns[task];
+        } else {
+            throw 'Applied function named "' + task + '" does not exist!';
+        }
+    }
+    if (!m_utils.is_undefined(defaults)) {
+        task = m_utils.partial(task, defaults);
+    }
+    return task(this.get_values());
+};
 
+Column.prototype.copy = function (task, defaults) {
+    return new Column(this.get_values(), this.title);
+};
+
+Column.prototype.loc = function (prism) {
+    if (this.rowcnt == prism.length) {
+        var res = [];
+        for (var i = 0; i < prism.length; i++) {
+            if (prism[i]) {
+                res.push(this.get_value);
+            }
+        }
+        var title = 'Filtered ' + this.title;
+        return new Column(res, title);
+    } else {
+        throw 'Arument object must have the same length!';
+    }
+};
+
+Column.prototype.toString = function () {
+    var n = self.rowcnt;
+    var ns = false;
+    if (n > 12) {
+        n = 10;
+        ns = true;
+    }
+    var values = this.get_values().slice(0, n).map(m_utils.partial(m_utils.repr_cell, [undefined, true]));
+    var res;
+    if (!this.values) {
+        res = m_utils.format('- Column "{}" of table "{}", ', [this.title, this.table.title]);
+    } else {
+        res = m_utils.format('- Column "{}", ', [this.title]);
+    }
+    res += this.rowcnt + ' values\n' + values.join(', ');
+    if (ns) {
+        res += ' . .';
+    }
+    return res;
+};
 
 Object.defineProperty(Column.prototype, 'rowcnt', {
     get: function () {
@@ -141,6 +193,149 @@ Object.defineProperty(Column.prototype, 'length', {
         }
     }
 });
+
+
+Column.prototype.indexOf = function (value) {
+    return this.get_values().indexOf(value);
+};
+
+Column.prototype.isin = function (other) {
+    var values = [];
+    for (var i = 0; i < this.rowcnt; i++) {
+        values.push(other.indexOf(this.get_value(i)) >= 0);
+    }
+    return new Column(values);
+};
+
+Column.prototype._op1 = function (func) {
+    var values = [];
+    for (var i = 0; i < this.rowcnt; i++) {
+        values.push(func(this.get_value(i)));
+    }
+    return new Column(values);
+};
+Column.prototype._op2 = function (other, func) {
+    var values = [];
+    if (other instanceof Column) {
+        for (var i = 0; i < this.rowcnt; i++) {
+            values.push(func(this.get_value(i), other.get_value(i)));
+        }
+    } else if (Array.isArray(other)) {
+        for (var i = 0; i < this.rowcnt; i++) {
+            values.push(func(this.get_value(i), other[i]));
+        }
+    } else {
+        // Handle "other" as a raw value
+        for (var i = 0; i < this.rowcnt; i++) {
+            values.push(func(this.get_value(i), other));
+        }
+    }
+    return new Column(values);
+};
+
+Column.prototype.inv = function () {
+    return this._op1(function (value) {
+        return !value;
+    });
+};
+Column.prototype.abs = function () {
+    return this._op1(function (value) {
+        return Math.abs(value);
+    });
+};
+
+Column.prototype.band = function (other) {
+    return this._op2(other, function (a, b) {
+        return a & b;
+    });
+};
+Column.prototype.bor = function (other) {
+    return this._op2(other, function (a, b) {
+        return a | b;
+    });
+};
+Column.prototype.bxor = function (other) {
+    return this._op2(other, function (a, b) {
+        return a ^ b;
+    });
+};
+
+Column.prototype.and = function (other) {
+    return this._op2(other, function (a, b) {
+        return a && b;
+    });
+};
+Column.prototype.or = function (other) {
+    return this._op2(other, function (a, b) {
+        return a || b;
+    });
+};
+Column.prototype.xor = function (other) {
+    return this._op2(other, function (a, b) {
+        return !a != !b;
+    });
+};
+
+Column.prototype.add = function (other) {
+    return this._op2(other, function (a, b) {
+        return a + b;
+    });
+};
+Column.prototype.sub = function (other) {
+    return this._op2(other, function (a, b) {
+        return a - b;
+    });
+};
+Column.prototype.mul = function (other) {
+    return this._op2(other, function (a, b) {
+        return a * b;
+    });
+};
+Column.prototype.div = function (other) {
+    return this._op2(other, function (a, b) {
+        return a / b;
+    });
+};
+Column.prototype.mod = function (other) {
+    return this._op2(other, function (a, b) {
+        return a % b;
+    });
+};
+Column.prototype.pow = function (other) {
+    return this._op2(other, function (a, b) {
+        return Math.power(a, b);
+    });
+};
+Column.prototype.gt = function (other) {
+    return this._op2(other, function (a, b) {
+        return a > b;
+    });
+};
+Column.prototype.lt = function (other) {
+    return this._op2(other, function (a, b) {
+        return a < b;
+    });
+};
+Column.prototype.ge = function (other) {
+    return this._op2(other, function (a, b) {
+        return a >= b;
+    });
+};
+Column.prototype.le = function (other) {
+    return this._op2(other, function (a, b) {
+        return a <= b;
+    });
+};
+Column.prototype.eq = function (other) {
+    return this._op2(other, function (a, b) {
+        return a == b;
+    });
+};
+Column.prototype.ne = function (other) {
+    return this._op2(other, function (a, b) {
+        return a != b;
+    });
+};
 
 
 module.exports = {

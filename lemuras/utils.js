@@ -15,6 +15,14 @@ function is_float(value) {
     return parseFloat(value) === value;
 }
 
+function repr_cell(value, quote_strings) {
+    if (is_string(value) && quote_strings) {
+        return '"' + value + '"';
+    } else {
+        return value;
+    }
+}
+
 function get_type(data, limit) {
     // Null Int Float String Date Other Mixed
     var tp = 'n';
@@ -75,11 +83,22 @@ function partial(func, defaults) {
     };
 }
 
+function format(txt, args) {
+    var res = txt;
+    for (var i = 0; i < args.length; i++) {
+        res = res.replace('{' + i + '}', '' + args[i]);
+        res = res.replace('{}', '' + args[i]);
+    }
+    return res;
+}
+
 module.exports = {
     is_undefined: is_undefined,
     is_string: is_string,
     is_int: is_int,
     is_float: is_float,
+    repr_cell: repr_cell,
     get_type: get_type,
     partial: partial,
+    format: format,
 };
