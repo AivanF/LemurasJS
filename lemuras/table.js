@@ -24,7 +24,7 @@ Object.defineProperty(Table.prototype, 'columns', {
     },
     set: function (news) {
         if (this._columns.length != news.length) {
-            throw 'New columns list must have the same length!';
+            throw Error('New columns list must have the same length!');
         }
         this._columns = news;
         this._calc_columns();
@@ -61,9 +61,17 @@ Table.prototype.column = function (column) {
     if (m_utils.is_string(column)) {
         column = this.column_indices[column];
     } else if (!m_utils.is_int(column)) {
-        throw 'Bad column key ' + column;
+        throw Error('Bad column key ' + column);
     }
     return new m_column.Column(null, this._columns[column], this, this._columns[column]);
+};
+
+Table.prototype.set_column = function (column, data) {
+    if (this.column_indices[column]) {
+        ;
+    } else {
+        ;
+    }
 };
 
 

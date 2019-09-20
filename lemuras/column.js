@@ -5,13 +5,13 @@ var m_processing = require('./processing');
 var Column = function (values, title, table, source_name) {
     this.title = title || 'NoName';
     if (!values && !table) {
-        throw 'Either values or table must be not null!';
+        throw Error('Either values or table must be not null!');
     }
     if (values && table) {
-        throw 'Either values or table must be given, not both of them!';
+        throw Error('Either values or table must be given, not both of them!');
     }
     if (table && !source_name) {
-        throw 'Table requres source_name argument!';
+        throw Error('Table requres source_name argument!');
     }
     this.values = values;  // TODO: check type is array
     this.table = table;
@@ -81,7 +81,7 @@ Column.prototype.get_type = function () {
 };
 
 Column.prototype.folds = function (fold_count, start) {
-    throw 'Not implemented!';
+    throw Error('Not implemented!');
 };
 
 Column.prototype.apply = function (task, defaults, separate) {
@@ -97,7 +97,7 @@ Column.prototype.apply = function (task, defaults, separate) {
                 separate = true;
             }
         } else {
-            throw 'Applied function named "' + task + '" does not exist!';
+            throw Error('Applied function named "' + task + '" does not exist!');
         }
     } else {
         if (m_utils.is_undefined(separate)) {
@@ -126,7 +126,7 @@ Column.prototype.calc = function (task, defaults) {
         if (m_processing.aggfuns[task]) {
             task = m_processing.aggfuns[task];
         } else {
-            throw 'Applied function named "' + task + '" does not exist!';
+            throw Error('Applied function named "' + task + '" does not exist!');
         }
     }
     if (!m_utils.is_undefined(defaults)) {
@@ -150,7 +150,7 @@ Column.prototype.loc = function (prism) {
         var title = 'Filtered ' + this.title;
         return new Column(res, title);
     } else {
-        throw 'Arument object must have the same length!';
+        throw Error('Arument object must have the same length!');
     }
 };
 

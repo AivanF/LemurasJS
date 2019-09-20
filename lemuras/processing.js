@@ -2,7 +2,7 @@
 var m_utils = require('./utils');
 
 function mode(list) {
-    throw 'Not implemented!';
+    throw Error('Not implemented!');
     // return max(set(lst), key=lst.count)
 }
 

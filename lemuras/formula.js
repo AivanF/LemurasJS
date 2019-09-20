@@ -31,7 +31,6 @@ var formula_op1 = {
 }
 
 function parse_formula(code) {
-    // Translate tbl["field"] to tbl.column("field")
     code = code.replaceAll('[[', '.column(');
     code = code.replaceAll(']]', ')');
     // Translate operations
