@@ -8,6 +8,10 @@ function is_string(value) {
     return (typeof value === 'string' || value instanceof String);
 }
 
+function is_bool(value) {
+    return !!value === value;
+}
+
 function is_int(value) {
     return Number.isInteger(value);
 }
@@ -25,7 +29,7 @@ function repr_cell(value, quote_strings) {
 }
 
 function get_type(data, limit) {
-    // Null Int Float String Date Other Mixed
+    // Null Bool Int Float String Date Other Mixed
     var tp = 'n';
     var ln = 0;
     var el, kind;
@@ -36,7 +40,9 @@ function get_type(data, limit) {
         el = data[i];
         ln = Math.max(ln, ('' + el).toString().length);
 
-        if (is_int(el)) {
+        if (is_bool(el)) {
+            kind = 'b';
+        } else if (is_int(el)) {
             kind = 'i';
         } else if (is_float(el)) {
             kind = 'f';
@@ -93,6 +99,98 @@ function format(txt, args) {
     return res;
 }
 
+var formula_op2 = {
+    '&': 'band',
+    '|': 'bor',
+    '^': 'bxor',
+
+    '&&': 'and',
+    '||': 'or',
+    '^^': 'xor',
+
+    '+': 'add',
+    '-': 'sub',
+    '*': 'mul',
+    '/': 'div',
+    '%': 'mod',
+    '**': 'pow',
+
+    '>': 'gt',
+    '<': 'lt',
+    '>=': 'ge',
+    '<=': 'le',
+    '==': 'eq',
+    '!=': 'ne',
+}
+
+function parse_formula(code) {
+    var cur, nex, prev = null;
+    var quote_mode = null; // null or ' or "
+    var op;
+    var to_close = []; // list of opened_par values
+    var opened_par = 0;
+    var res = '';
+    function try_close() {
+        if (opened_par == to_close[to_close.length-1]) {
+            res += ')';
+            to_close.splice(-1, 1); // remove last value
+        }
+    }
+    code += ' '; // to always have next
+    for (var i = 0; i < code.length-1; i++) {
+        cur = code[i];
+        nex = code[i+1];
+        if (quote_mode) {
+            if (cur == quote_mode && prev != '\\') {
+                quote_mode = null;
+            }
+            res += cur;
+        } else {
+            if (cur == '"') {
+                quote_mode = '"';
+                res += cur;
+            } else if (cur == "'") {
+                quote_mode = "'";
+                res += cur;
+            } else {
+                op = formula_op2[cur + nex];
+                if (op) {
+                    i++;
+                } else {
+                    op = formula_op2[cur];
+                }
+                if (op) {
+                    try_close();
+                    res += '.' + op + '(';
+                    to_close.push(opened_par);
+                } else {
+                    res += cur;
+                    if (cur == '(') {
+                        opened_par++;
+                    } else if (cur == ')') {
+                        try_close();
+                        opened_par--;
+                    }
+                }
+            }
+        }
+        prev = cur;
+    }
+    try_close();
+    return res;
+}
+
+function create_formula(code, args) {
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
+    // a+b+c => a.add(b).add(c)
+    // (a+b)*c => (a.add(b)).mult(c)
+    code = 'return ' + parse_formula(code) + ';';
+    args = args || [];
+    args = [null].concat(args.concat([code]));
+    console.log(null, 'args', args);
+    return new (Function.prototype.bind.apply(Function, args));
+}
+
 module.exports = {
     is_undefined: is_undefined,
     is_string: is_string,
@@ -102,4 +200,6 @@ module.exports = {
     get_type: get_type,
     partial: partial,
     format: format,
+    parse_formula: parse_formula,
+    create_formula: create_formula,
 };

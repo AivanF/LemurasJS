@@ -11,26 +11,36 @@ LemurasJS is available in console...
 <br>
 <a href="https://github.com/AivanF/LemurasJS">GitHub page</a>
 <script type="text/javascript">
-	console.log('LemurasJS content:')
-	console.log(lemuras);
-	var columns = ['name', 'value', 'id'];
-	var rows = [
-		['pi',  3.1415926535, 0],
-		['e',   2.7182818284, 1],
-		['phi', 1.618034, 2],
-	];
-	var t = new lemuras.Table(columns, rows, 'MyTable');
-	console.log(t);
+	function main() {
+		console.log('LemurasJS content:')
+		console.log(lemuras);
+		var columns = ['name', 'value', 'id'];
+		var rows = [
+			['pi',  3.1415926535, 0],
+			['e',   2.7182818284, 1],
+			['phi', 1.618034, 2],
+		];
+		var t = new lemuras.Table(columns, rows, 'MyTable');
+		console.log(t);
 
-	var c;
-	// c = t.column('key');
-	// c = lemuras.Column.make_index(5);
-	// c = c.apply('isin', [undefined, ['pi']]);
-	// c = c.isin(['pi', 'lol']);
-	c = t.column('id').add(t.column('value')).sub(3).mul(100).apply('int').mod(10).gt(2);
-	console.log(c);
-	// console.log(c.get_type());
-	// console.log(t.cell('key', 1));
+		var c;
+		// c = t.column('key');
+		// c = lemuras.Column.make_index(5);
+		// c = c.apply('isin', [undefined, ['pi']]);
+		// c = c.isin(['pi', 'lol']);
+		c = t.column('id').add(t.column('value')).sub(3).mul(100).apply('int').mod(10).gt(2);
+		console.log(c);
+		console.log(c.get_type());
+		// console.log(t.cell('key', 1));
+
+		var fc1 = '(a+b)>=c.lol("(")';
+		var fc2 = lemuras.utils.parse_formula(fc1);
+		console.log(lemuras.utils.format('"{}" => "{}"', [fc1, fc2]));
+		// var f = lemuras.utils.create_formula('c.toString()', ['c']);
+		// console.log(f);
+		// console.log(f(c));
+	}
+	main();
 </script>
 </body>
 </html>

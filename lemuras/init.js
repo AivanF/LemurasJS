@@ -1,1 +1,7 @@
-module.exports = Object.assign({}, require('./column'), require('./table'));// https://github.com/AivanF/LemurasJS
+// https://github.com/AivanF/LemurasJS
+var c = require('./column');
+var t = require('./table');
+var u = require('./utils');
+module.exports = Object.assign({
+	utils: u,
+}, c, t);
