@@ -90,6 +90,10 @@ function partial(func, defaults) {
     };
 }
 
+String.prototype.replaceAll = function(search, replacement) {
+    return this.split(search).join(replacement);
+}
+
 function format(txt, args) {
     var res = txt;
     for (var i = 0; i < args.length; i++) {
@@ -98,6 +102,7 @@ function format(txt, args) {
     }
     return res;
 }
+
 
 var formula_op2 = {
     '&': 'band',
@@ -129,6 +134,10 @@ var formula_op1 = {
 }
 
 function parse_formula(code) {
+    // Translate tbl["field"] to tbl.column("field")
+    code = code.replaceAll('[[', '.column(');
+    code = code.replaceAll(']]', ')');
+    // Translate operations
     var cur, nex, prev = null;
     var quote_mode = null; // null or ' or "
     var op;
@@ -202,8 +211,6 @@ function parse_formula(code) {
 
 function formula(source_code, args) {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
-    // a+b+c => a.add(b).add(c)
-    // (a+b)*c => (a.add(b)).mult(c)
     var parsed = parse_formula(source_code);
     args = args || [];
     args = [null].concat(args.concat(['return ' + parsed + ';']));
