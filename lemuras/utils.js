@@ -179,12 +179,16 @@ function parse_formula(code) {
                         res += '.' + op + '(';
                         to_close.push(opened_par);
                     } else {
-                        res += cur;
-                        if (cur == '(') {
-                            opened_par++;
-                        } else if (cur == ')') {
-                            try_close();
-                            opened_par--;
+                        if (cur == ' ') {
+                            ; // don't add whitespaces
+                        } else {
+                            res += cur;
+                            if (cur == '(') {
+                                opened_par++;
+                            } else if (cur == ')') {
+                                try_close();
+                                opened_par--;
+                            }
                         }
                     }
                 }
@@ -200,7 +204,7 @@ function formula(source_code, args) {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
     // a+b+c => a.add(b).add(c)
     // (a+b)*c => (a.add(b)).mult(c)
-    var parsed = parse_formula(source_code)
+    var parsed = parse_formula(source_code);
     args = args || [];
     args = [null].concat(args.concat(['return ' + parsed + ';']));
     var res = new (Function.prototype.bind.apply(Function, args));
