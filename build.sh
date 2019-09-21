@@ -2,11 +2,16 @@
 echo "----- Building Lemuras JS -----"
 
 debug=0
+show_lines=0
 
 while test $# -gt 0; do
 case "$1" in
 	-D|--debug)
 		debug=1
+		shift
+		;;
+	-L)
+		show_lines=1
 		shift
 		;;
 	*)
@@ -16,8 +21,12 @@ case "$1" in
 	esac
 done
 
-printf "Lines of code: "
-find ./lemuras "(" -name "*.js" ")" -print0 | xargs -0 wc -l | tail -1 | awk '{print $1;}'
+if [ $show_lines -eq 1 ]; then
+	printf "Lines of code: "
+	find ./lemuras "(" -name "*.js" ")" -print0 | xargs -0 wc -l | tail -1 | awk '{print $1;}'
+	printf "Lines of tests: "
+	find ./__tests__ "(" -name "*.js" ")" -print0 | xargs -0 wc -l | tail -1 | awk '{print $1;}'
+fi
 
 # Combine files
 ncc build ./lemuras/init.js -o dist
