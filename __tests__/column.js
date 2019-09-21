@@ -1,6 +1,6 @@
 
-const m_data = require('./sample_data.js');
-var lemuras = require('../lemuras/init.js');
+const m_data = require('../sample_data.js');
+const lemuras = require('../lemuras/init.js');
 const F = lemuras.F;
 
 let cdates = new lemuras.Column(['2018-12-30', '14.09.1983', '02/15/1916'], 'Dates');
@@ -75,7 +75,7 @@ describe('Column class', function () {
 		expect(df2.column('weight').calc('q1')).toEqual(12.0);
 		expect(df2.column('weight').calc('median')).toEqual(12.0);
 		expect(df2.column('weight').calc('q3')).toEqual(13.5);
-		// expect(df2.column('weight').calc('mode')).toEqual(12); // TODO: implement mode
+		expect(df2.column('weight').calc('mode')).toEqual(12);
 		expect(df2.column('weight').calc('count')).toEqual(6);
 		expect(df2.column('weight').calc('nunique')).toEqual(4);
 		expect(df2.column('type').calc('nunique')).toEqual(2);
@@ -134,5 +134,16 @@ describe('Column class', function () {
 
 		expect(a.loc(a.isin(b).inv()).values).toEqual([5,7]);
 		expect(a.loc(a.isin([2,3]).inv()).values).toEqual([1,5,7]);
+	});
+
+	test('Iter', function () {
+		var res = [];
+		var c = new lemuras.Column([2, 3]);
+		c.forEach(function (a, i) {
+			c.forEach(function (b, j) {
+				res.push(a*b);
+			});
+		});
+		expect(lemuras.processing.aggfuns.sum(res)).toEqual(25);
 	});
 });
