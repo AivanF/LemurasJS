@@ -1,5 +1,5 @@
 
-const m_data = require('../sample_data.js');
+const m_data = require('../other/sample_data.js');
 const lemuras = require('../lemuras/init.js');
 const F = lemuras.F;
 

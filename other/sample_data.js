@@ -1,5 +1,5 @@
 
-const m_table = require('./lemuras/table.js');
+const m_table = require('../lemuras/table.js');
 
 const cols = ['type', 'size', 'weight', 'tel', 'when'];
 const rows = [
