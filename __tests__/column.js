@@ -1,10 +1,9 @@
 
 const m_data = require('./sample_data.js');
-const m_column = require('../lemuras/column.js');
-const m_formula = require('../lemuras/formula.js');
-const F = m_formula.create_formula;
+var lemuras = require('../lemuras/init.js');
+const F = lemuras.F;
 
-let cdates = new m_column.Column(['2018-12-30', '14.09.1983', '02/15/1916'], 'Dates');
+let cdates = new lemuras.Column(['2018-12-30', '14.09.1983', '02/15/1916'], 'Dates');
 
 describe('Column class', function () {
 	test('Creation', function () {
@@ -12,17 +11,17 @@ describe('Column class', function () {
 		// values, title, table, source_name
 
 		function create_no_args() {
-			var t = new m_column.Column();
+			var t = new lemuras.Column();
 		};
 		expect(create_no_args).toThrow(Error);
 
 		function create_too_many_args() {
-			var t = new m_column.Column([], null, m_data.df1, 'size');
+			var t = new lemuras.Column([], null, m_data.df1, 'size');
 		};
 		expect(create_too_many_args).toThrow(Error);
 
 		function create_table_no_field() {
-			var t = new m_column.Column(null, null, m_data.df1);
+			var t = new lemuras.Column(null, null, m_data.df1);
 		};
 		expect(create_table_no_field).toThrow(Error);
 	});
@@ -98,7 +97,22 @@ describe('Column class', function () {
 		var df2 = m_data.df1.copy();
 		expect(df2.column('tel').copy().apply('str').apply('is_string').calc('sum')).toEqual(df2.rowcnt);
 		expect(df2.column('tel').copy().apply('int').apply('is_int', Number).calc('sum')).toEqual(df2.rowcnt);
-		// TODO: here...
-		;
+		expect(df2.column('tel').copy().apply('int').calc('avg')).toEqual(36516353048.5);
+		expect(df2.column('tel').copy().apply('isnull').calc('sum')).toEqual(1);
+		expect(df2.column('tel').copy().apply('int').apply('isnull').calc('sum')).toEqual(0);
+		expect(df2.column('tel').copy().apply('float').apply('is_float').calc('sum')).toEqual(df2.rowcnt);
+		expect(df2.column('tel').copy().apply('none_to', 0).calc('nulls')).toEqual(0);
+	});
+
+	test('Apply', function () {
+		// TODO: here!
+	});
+
+	test('Table', function () {
+		// TODO: here!
+	});
+
+	test('Loc', function () {
+		// TODO: here!
 	});
 });
