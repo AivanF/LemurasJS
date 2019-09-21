@@ -11,6 +11,7 @@ function percentile(list, percent) {
         percent = 0.5;
     }
     list = list.slice(0);
+    list.sort();
     var k = (list.length-1) * percent;
     var f = Math.floor(k);
     var c = Math.ceil(k);
@@ -39,13 +40,16 @@ function avg(list) {
 }
 
 function std(list, ddof, mean) {
+    if (m_utils.is_undefined(ddof)) {
+        ddof = 0;
+    }
     if (list.length >= 1+ddof) {
         if (m_utils.is_undefined(mean)) {
             mean = avg(list);
         }
-        var s = sum(list.map(function (x) {return Math.power(x-mean, 2);}));
+        var s = sum(list.map(function (x) {return Math.pow(x-mean, 2);}));
         var disp = s / (list.length - ddof);
-        return Math.power(disp, 0.5);
+        return Math.pow(disp, 0.5);
     } else {
         return 0;
     }
@@ -67,31 +71,31 @@ function nunique(list) {
 
 function nulls(list) {
     var res = 0;
-    list.forEach(function (value) {
-        if (value === null) {
-            res += 1;
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] === null) {
+            res = list[i];
         }
-    });
+    }
     return res;
 }
 
 function max(list) {
     var res = Number.NEGATIVE_INFINITY;
-    list.forEach(function (value) {
-        if (value > res) {
-            res = value;
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] > res) {
+            res = list[i];
         }
-    });
+    }
     return res;
 }
 
 function min(list) {
     var res = Number.POSITIVE_INFINITY;
-    list.forEach(function (value) {
-        if (value > res) {
-            res = value;
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] < res) {
+            res = list[i];
         }
-    });
+    }
     return res;
 }
 
@@ -138,9 +142,12 @@ var aggfuns = {
 
 
 function make_str(value, def) {
+    if (m_utils.is_undefined(def)) {
+        def = '';
+    }
     if (m_utils.is_string(value)) {
         return value;
-    } else if (m_utils.is_undefined(def)) {
+    } else if (!m_utils.is_nil(value)) {
         return value.toString();
     } else {
         return def;
@@ -218,9 +225,20 @@ var applyfuns = {
     isnull: is_none,
     lengths: lengths,
     isin: isin,
-    // TODO: here!
-    // istype: isinstance,
-    // isinstance: isinstance,
+
+    istype: function (value, type) {
+        return (typeof value) == type;
+    },
+    isinstance: function (value, type) {
+        var r = value instanceof type;
+        console.log(value, type, r);
+        return r;
+    },
+
+    is_string: m_utils.is_string,
+    is_bool: m_utils.is_bool,
+    is_int: m_utils.is_int,
+    is_float: m_utils.is_float,
 }
 
 

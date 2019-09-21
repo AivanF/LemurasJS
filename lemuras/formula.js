@@ -23,6 +23,9 @@ var formula_op2 = {
     '<=': 'le',
     '==': 'eq',
     '!=': 'ne',
+
+    '~>': 'isin',
+    '<~': 'findin',
 }
 
 var formula_op1 = {
@@ -88,10 +91,11 @@ function extract_names(code) {
 }
 
 function parse_formula(code) {
-    // TODO: transform column.int(...) to column.apply('int', ...)
-    // TODO: transform column.sum(...) to column.calc('sum', ...)
-    // TODO: transform table[["field"]]:=... to table.set_column("field", ...)
-    // TODO: transform table[["field"]]((j)):=... to table.column("field").set_value(j, ...)
+    // TODO: transform col.int(...) to col.apply('int', ...)
+    // TODO: transform col.sum(...) to col.calc('sum', ...)
+    // TODO: transform tbl[["field"]]:=... to tbl.set_column("field", ...)
+    // TODO: transform tbl[["field"]]((j)):=... to tbl.column("field").set_value(j, ...)
+    // TODO: transform col((j)):=... to column.set_value(j, ...)
 
     // Translate operations
     var cur, nex, prev = null;
@@ -102,13 +106,16 @@ function parse_formula(code) {
     var opened_par = 0;
     var res = '';
     function try_close() {
-        if (opened_par == to_close[to_close.length-1]) {
+        if (to_close.length > 0 && (opened_par == to_close[to_close.length-1])) {
             if (doors[opened_par]) {
                 res += doors[opened_par];
                 doors[opened_par] = null;
             }
             res += ')';
             to_close.splice(-1, 1); // remove last value
+            return true;
+        } else {
+            return false;
         }
     }
     code += ' '; // to always have next
@@ -164,12 +171,12 @@ function parse_formula(code) {
         }
         prev = cur;
     }
-    try_close();
+    while (try_close()) {};
     if (opened_par != 0) {
         throw new SyntaxError('Bad parentheses count!');
     }
-    // Translate tbl["field"] to tbl.column("field")
     // TODO: prevent replacing in strings
+    // Translate tbl[["field"]] to tbl.column("field")
     res = res.replaceAll('[[', '.column(');
     res = res.replaceAll(']]', ')');
     return res;
@@ -207,5 +214,5 @@ function create_formula(source_code, formula_args) {
 
 module.exports = {
     extract_names: extract_names,
-    formula: create_formula,
+    create_formula: create_formula,
 };

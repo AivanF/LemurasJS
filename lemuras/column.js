@@ -84,41 +84,24 @@ Column.prototype.folds = function (fold_count, start) {
     throw Error('Not implemented!');
 };
 
-Column.prototype.apply = function (task, defaults, separate) {
+Column.prototype.apply = function (task, defaults) {
     if (m_utils.is_string(task)) {
         if (m_processing.typefuns[task]) {
             task = m_processing.typefuns[task];
-            if (m_utils.is_undefined(separate)) {
-                separate = false;
-            }
         } else if (m_processing.applyfuns[task]) {
             task = m_processing.applyfuns[task];
-            if (m_utils.is_undefined(separate)) {
-                separate = true;
-            }
         } else {
             throw Error('Applied function named "' + task + '" does not exist!');
         }
-    } else {
-        if (m_utils.is_undefined(separate)) {
-            separate = false;
-        }
     }
-    if (!m_utils.is_undefined(defaults)) {
-        task = m_utils.partial(task, defaults);
+    var defaults = m_utils.args2array(arguments).slice(1);
+
+
+    for (var i = 0; i < this.rowcnt; i++) {
+        args = [this.get_value(i)].concat(defaults);
+        this.set_value(i, task.apply(null, args));
     }
-    if (separate) {
-        var res = [];
-        for (var i = 0; i < this.rowcnt; i++) {
-            res.push(task(this.get_value(i)));
-        }
-        return new Column(res, this.title);
-    } else {
-        for (var i = 0; i < this.rowcnt; i++) {
-            this.set_value(i, task(this.get_value(i)));
-        }
-        return this;
-    }
+    return this;
 };
 
 Column.prototype.calc = function (task, defaults) {
@@ -129,10 +112,9 @@ Column.prototype.calc = function (task, defaults) {
             throw Error('Applied function named "' + task + '" does not exist!');
         }
     }
-    if (!m_utils.is_undefined(defaults)) {
-        task = m_utils.partial(task, defaults);
-    }
-    return task(this.get_values());
+    var args = [this.get_values()];
+    args = args.concat( m_utils.args2array(arguments).slice(1) );
+    return task.apply(null, args);
 };
 
 Column.prototype.copy = function (task, defaults) {
@@ -208,6 +190,14 @@ Column.prototype.isin = function (other) {
     return new Column(values);
 };
 
+Column.prototype.findin = function (other) {
+    var values = [];
+    for (var i = 0; i < this.rowcnt; i++) {
+        values.push(other.indexOf(this.get_value(i)));
+    }
+    return new Column(values);
+};
+
 Column.prototype._op1 = function (func) {
     var values = [];
     for (var i = 0; i < this.rowcnt; i++) {
@@ -218,10 +208,16 @@ Column.prototype._op1 = function (func) {
 Column.prototype._op2 = function (other, func) {
     var values = [];
     if (other instanceof Column) {
+        if (this.rowcnt != other.rowcnt) {
+            throw Error('Operation argument column has wrong length {}, but column has {}'.format(other.length, this.rowcnt));
+        }
         for (var i = 0; i < this.rowcnt; i++) {
             values.push(func(this.get_value(i), other.get_value(i)));
         }
     } else if (Array.isArray(other)) {
+        if (this.rowcnt != other.length) {
+            throw Error('Operation argument array has wrong length {}, but column has {}'.format(other.length, this.rowcnt));
+        }
         for (var i = 0; i < this.rowcnt; i++) {
             values.push(func(this.get_value(i), other[i]));
         }

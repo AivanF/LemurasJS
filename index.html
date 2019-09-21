@@ -36,23 +36,24 @@ LemurasJS is available in console...
 		var c;
 		// c = t.column('key');
 		// c = lemuras.Column.make_index(5);
-		// c = c.apply('isin', [undefined, ['pi']]);
+		// c = c.apply('isin', 'pi');
 		// c = c.isin(['pi', 'lol']);
 		// c = t.column('id').add(t.column('value')).sub(3).mul(100).apply('int').mod(10).gt(2);
 		// console.log(c);
 		// console.log(c.get_type());
 		// console.log(t.cell('key', 1));
 
-		var fc = '( (tbl[["id"]]+tbl[["value"]]) -3 *(5\\*20) ).apply("int") %10 >2';
+		// var fc = '( (tbl[["id"]]+tbl[["value"]]) -3 *(5\\*20) ).apply("int") %10 >2';
 		// var fc = 'df[["weight"]]>df[["size"]]';
+		var fc = 'df[["weight"]] > df[["size"]]';
 		// console.log(lemuras.extract_names(fc));
 
-		var f = lemuras.formula(fc);
+		var f = lemuras.F(fc);
 		console.log('"{}" => "{}"\nArguments: {}'.format(f.source, f.parsed, f.args));
-		console.log(f(t));
+		// console.log(f(t));
 
 		// var fc2 = '(tbl[["value"]] - tbl[["id"]] * 10) .apply("int")';
-		// var f2 = lemuras.formula(fc2);
+		// var f2 = lemuras.F(fc2);
 		// console.log(f2(t));
 	}
 	main();
