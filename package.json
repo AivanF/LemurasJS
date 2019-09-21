@@ -4,6 +4,7 @@
   "description": "JS library to deal with tables",
   "main": "lemuras.js",
   "scripts": {
+    "make": ". build.sh",
     "test": "jest --verbose",
     "start": "node server.js"
   },
