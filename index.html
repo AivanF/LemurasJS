@@ -20,7 +20,7 @@ LemurasJS is available in console...
 			['e',   2.7182818284, 1],
 		];
 		var t = new lemuras.Table(columns, rows, 'MyTable');
-		t.add_row(['phi', 1.618034, 2]);
+		t.add_row(['phi', 1.618034, 1]);
 		t.add_column([-2560, 1618, -300], 'when');
 		// console.log('' + t.row(1));
 		// t.delete_row(1);
@@ -28,6 +28,10 @@ LemurasJS is available in console...
 		t.sort('when', 0);
 		console.log(t);
 		// console.log(t.find_types());
+
+		var g = t.groupby('id');
+		console.log(g);
+		console.log(g.agg({'name': 'count'}));
 
 		// console.log('' + t.calc(function(row, k, p){
 		// 	return Math.floor(row.get_value(k)*10 + p);

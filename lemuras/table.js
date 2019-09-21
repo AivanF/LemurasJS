@@ -375,6 +375,26 @@ Table.prototype.copy = function () {
     return new Table(columns, rows, this.title);
 };
 
+Table.prototype.groupby = function (key_columns) {
+    if (!key_columns) {
+        key_columns = [];
+    }
+    if (!Array.isArray(key_columns)) {
+        key_columns = [key_columns];
+    }
+    for (var i = 0; i < key_columns.length; i++) {
+        if (!this.column_indices[key_columns[i]]) {
+            throw Error('GroupBy arg "{}" is not a Table column name!'.format(name));
+        }
+    }
+    var m_grouped = require('./grouped');
+    var res = new m_grouped.Grouped(key_columns, this._columns, this.column_indices, this.title);
+    this.forEach(function (row) {
+        res.add(row);
+    });
+    return res;
+};
+
 
 module.exports = {
     Table: Table,

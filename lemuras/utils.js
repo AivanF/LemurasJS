@@ -24,6 +24,14 @@ function is_float(value) {
     return parseFloat(value) === value;
 }
 
+function is_dict(value) {
+    return value.constructor == Object;
+}
+
+function is_function(value) {
+    return typeof value === 'function';
+}
+
 function isLetter(c) {
     return c.toLowerCase() != c.toUpperCase();
 }
@@ -119,6 +127,14 @@ function args2array(args) {
     return [].slice.apply(args);
 }
 
+function list_of_lists(length) {
+    var res = [];
+    for (var i = 0; i < length; i++) {
+        res.push([]);
+    }
+    return res;
+}
+
 
 module.exports = {
     is_undefined: is_undefined,
@@ -126,10 +142,13 @@ module.exports = {
     is_string: is_string,
     is_int: is_int,
     is_float: is_float,
+    is_dict: is_dict,
+    is_function: is_function,
     isLetter: isLetter,
     isDigit: isDigit,
     repr_cell: repr_cell,
     get_type: get_type,
     partial: partial,
     args2array: args2array,
+    list_of_lists: list_of_lists,
 };
