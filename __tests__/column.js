@@ -105,14 +105,34 @@ describe('Column class', function () {
 	});
 
 	test('Apply', function () {
-		// TODO: here!
+		// It has not so many meaning for JS version of Lemuras
+		// Because Column.apply will always work in place
 	});
 
 	test('Table', function () {
-		// TODO: here!
+		// It was tested in other sections
 	});
 
 	test('Loc', function () {
-		// TODO: here!
+		var a = new lemuras.Column([1, 3, 5, 7], 'cA');
+		var b = new lemuras.Column([1, 2, 3], 'cB');
+
+		function loc_wrong_type() {
+			a.loc({a:1, b:2});
+		};
+		expect(loc_wrong_type).toThrow(Error);
+
+		function loc_wrong_column_length() {
+			a.loc(b);
+		};
+		expect(loc_wrong_column_length).toThrow(Error);
+
+		function loc_wrong_array_length() {
+			a.loc([1,0,1]);
+		};
+		expect(loc_wrong_array_length).toThrow(Error);
+
+		expect(a.loc(a.isin(b).inv()).values).toEqual([5,7]);
+		expect(a.loc(a.isin([2,3]).inv()).values).toEqual([1,5,7]);
 	});
 });

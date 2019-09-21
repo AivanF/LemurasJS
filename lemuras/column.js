@@ -122,18 +122,32 @@ Column.prototype.copy = function (task, defaults) {
 };
 
 Column.prototype.loc = function (prism) {
-    if (this.rowcnt == prism.length) {
-        var res = [];
-        for (var i = 0; i < prism.length; i++) {
-            if (prism[i]) {
-                res.push(this.get_value);
+    var res = [];
+    if (prism instanceof Column) { 
+        if (this.rowcnt == prism.rowcnt) {
+            for (var i = 0; i < this.rowcnt; i++) {
+                if (prism.get_value(i)) {
+                    res.push(this.get_value(i));
+                }
             }
+        } else {
+            throw Error('Loc arument array must have the same length!');
         }
-        var title = 'Filtered ' + this.title;
-        return new Column(res, title);
+    } else if (Array.isArray(prism)) {
+        if (this.rowcnt == prism.length) {
+            for (var i = 0; i < this.rowcnt; i++) {
+                if (prism[i]) {
+                    res.push(this.get_value(i));
+                }
+            }
+        } else {
+            throw Error('Loc arument array must have the same length!');
+        }
     } else {
-        throw Error('Arument object must have the same length!');
+        throw TypeError('Loc argument must be an array or a Column!')
     }
+    var title = 'Filtered ' + this.title;
+    return new Column(res, title);
 };
 
 Column.prototype.toString = function () {
