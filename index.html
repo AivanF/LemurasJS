@@ -28,6 +28,10 @@ LemurasJS is available in console...
 		console.log(t);
 		console.log(t.find_types());
 
+		console.log('' + t.calc(function(row, k, p){
+			return Math.floor(row.get_value(k)*10 + p);
+		}, 'value', 4).calc('sum'));
+
 		var c;
 		// c = t.column('key');
 		// c = lemuras.Column.make_index(5);

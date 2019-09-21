@@ -260,8 +260,16 @@ Table.prototype.make_index = function (title) {
     return res;
 };
 
-Table.prototype.calc = function (task) {
-    throw Error('Not implemented!');
+Table.prototype.calc = function (task, abc) {
+    var res = [];
+    var row = new m_row.Row(this, 0);
+    var args = [row];
+    args = args.concat( m_utils.args2array(arguments).slice(1) );
+    for (var i = 0; i < this.rowcnt; i++) {
+        row.row_index = i;
+        res.push(task.apply(null, args));
+    }
+    return new m_column.Column(res, 'Calc');
 };
 
 

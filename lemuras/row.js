@@ -93,7 +93,7 @@ Row.prototype.calc = function (task, abc) {
         }
     }
     var args = [this.get_values()];
-    args = args.concat( m_utils.args2array(args2array).slice(1) );
+    args = args.concat( m_utils.args2array(arguments).slice(1) );
     return task.apply(null, args);
 };
 
