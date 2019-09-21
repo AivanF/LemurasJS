@@ -33,7 +33,7 @@ LemurasJS is available in console...
 		// 	return Math.floor(row.get_value(k)*10 + p);
 		// }, 'value', 4).calc('sum'));
 
-		var c;
+		// var c;
 		// c = t.column('key');
 		// c = lemuras.Column.make_index(5);
 		// c = c.apply('isin', 'pi');
@@ -44,12 +44,8 @@ LemurasJS is available in console...
 		// console.log(t.cell('key', 1));
 
 		// var fc = '( (tbl[["id"]]+tbl[["value"]]) -3 *(5\\*20) ).apply("int") %10 >2';
-		// var fc = 'df[["weight"]]>df[["size"]]';
-		var fc = 'df[["weight"]] > df[["size"]]';
-		// console.log(lemuras.extract_names(fc));
-
-		var f = lemuras.F(fc);
-		console.log('"{}" => "{}"\nArguments: {}'.format(f.source, f.parsed, f.args));
+		// var f = lemuras.F(fc);
+		// console.log('Lemuras formula:\n"{}" => "{}"\nArguments: {}'.format(f.source, f.parsed, f.args));
 		// console.log(f(t));
 
 		// var fc2 = '(tbl[["value"]] - tbl[["id"]] * 10) .apply("int")';

@@ -1,5 +1,6 @@
 // https://github.com/AivanF/LemurasJS
 var c = require('./column');
+var r = require('./row');
 var t = require('./table');
 var u = require('./utils');
 var p = require('./processing');
@@ -9,4 +10,4 @@ module.exports = Object.assign({
 	processing: p,
 	formula: f,
 	F: f.create_formula,
-}, c, t, f);
+}, c, r, t, f);

@@ -6,6 +6,12 @@ var m_row = require('./row');
 
 var Table = function (columns, rows, title) {
     // TODO: check called with "new"
+    if (!Array.isArray(columns)) {
+        throw TypeError('Table columns must be an array!');
+    }
+    if (!Array.isArray(rows)) {
+        throw TypeError('Table rows must be an array!');
+    }
     this._columns = columns;
     this.rows = rows;
     this.title = title || 'NoTitle';
@@ -47,7 +53,11 @@ Object.defineProperty(Table.prototype, 'rowcnt', {
 
 Table.prototype.cell = function (column, row_index) {
     if (m_utils.is_string(column)) {
-        column = this.column_indices[column];
+        var ind = this.column_indices[column];
+        if (m_utils.is_undefined(ind)) {
+            throw TypeError('Column {} does not exist!'.format(column));
+        }
+        column = ind;
     }
     return this.rows[row_index][column];
 };
@@ -66,7 +76,7 @@ Table.prototype.column = function (column) {
         }
     }
     if (!m_utils.is_int(column)) {
-        throw TypeError('Bad column key {}'.format(column));
+        throw TypeError('Column {} does not exist!'.format(column));
     }
     return new m_column.Column(null, this._columns[column], this, this._columns[column]);
 };
@@ -178,6 +188,9 @@ Table.from_rows = function (rows, columns, title, preprocess) {
 };
 
 Table.prototype.row = function (row_index) {
+    if (!m_utils.is_int(row_index) || row_index < 0 || row_index >= this.rowcnt) {
+        throw new TypeError('Bad row index!');
+    }
     return new m_row.Row(this, row_index);
 };
 
@@ -341,6 +354,15 @@ Table.prototype.sort = function (columns, asc) {
         this.rows.sort(function (row1, row2) {
             return comparify(row1[key], row2[key], !order);
         });
+    }
+};
+
+Table.prototype.forEach = function (callback) {
+    // callback = function (row, index)
+    var row = new m_row.Row(this, 0);
+    for (var i = 0; i < this.rowcnt; i++) {
+        row.row_index = i;
+        callback(row, i);
     }
 };
 

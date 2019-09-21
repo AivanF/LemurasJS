@@ -34,6 +34,12 @@ Object.defineProperty(Row.prototype, 'colcnt', {
     }
 });
 
+Object.defineProperty(Row.prototype, 'length', {
+    get: function () {
+        return this.colcnt;
+    }
+});
+
 Object.defineProperty(Row.prototype, 'columns', {
     get: function () {
         if (this.values) {
@@ -59,10 +65,13 @@ Row.prototype.get_values = function () {
 Row.prototype.get_value = function (column) {
     if (this.values) {
         if (m_utils.is_string(column)) {
-            return this.values[this.column_names.indexOf(column)];
-        } else {
-            return this.values[column];
+            var ind = this.column_names.indexOf(column);
+            if (ind < 0) {
+                throw TypeError('Column {} does not exist!'.format(column));
+            }
+            column = ind;
         }
+        return this.values[column];
     } else {
         return this.table.cell(column, this.row_index);
     }
@@ -97,12 +106,15 @@ Row.prototype.calc = function (task, abc) {
     return task.apply(null, args);
 };
 
-Row.prototype.copy = function () {
-    return new Row(null, null, this.get_values(), this.columns);
+Row.prototype.forEach = function (callback) {
+    // callback = function (value, index, column_name)
+    for (var i = 0; i < this.colcnt; i++) {
+        callback(this.get_value(i), i, this.columns[i]);
+    }
 };
 
-Row.prototype.length = function () {
-    return this.colcnt;
+Row.prototype.copy = function () {
+    return new Row(null, null, this.get_values(), this.columns);
 };
 
 Row.prototype.toString = function () {

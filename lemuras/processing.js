@@ -2,8 +2,18 @@
 var m_utils = require('./utils');
 
 function mode(list) {
-    throw Error('Not implemented!');
-    // return max(set(lst), key=lst.count)
+    var numMapping = {};
+    var greatestFreq = 0;
+    var res;
+    list.forEach(function findMode(value) {
+        numMapping[value] = (numMapping[value] || 0) + 1;
+
+        if (greatestFreq < numMapping[value]) {
+            greatestFreq = numMapping[value];
+            res = value;
+        }
+    });
+    return res;
 }
 
 function percentile(list, percent) {

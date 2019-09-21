@@ -5,13 +5,18 @@ var m_processing = require('./processing');
 var Column = function (values, title, table, source_name) {
     this.title = title || 'NoName';
     if (!values && !table) {
-        throw Error('Either values or table must be not null!');
+        throw TypeError('Either values or table must be not null!');
     }
     if (values && table) {
-        throw Error('Either values or table must be given, not both of them!');
+        throw TypeError('Either values or table must be given, not both of them!');
     }
     if (table && !source_name) {
-        throw Error('Table requres source_name argument!');
+        throw TypeError('Column linking requires source_name argument!');
+    }
+    if (values) {
+        if (!Array.isArray(values)) {
+            throw TypeError('Column values must be an array!');
+        }
     }
     this.values = values;  // TODO: check type is array
     this.table = table;
@@ -45,12 +50,6 @@ Column.prototype.set_value = function (row_index, value) {
     } else {
         var column_index = this.table.column_indices[this.source_name];
         this.table.rows[row_index][column_index] = value;
-    }
-};
-
-Column.prototype.forEach = function (callback) {
-    for (var i = 0; i < this.rowcnt; i++) {
-        callback(this.get_value(i), i);
     }
 };
 
@@ -117,10 +116,6 @@ Column.prototype.calc = function (task, defaults) {
     return task.apply(null, args);
 };
 
-Column.prototype.copy = function (task, defaults) {
-    return new Column(this.get_values(), this.title);
-};
-
 Column.prototype.loc = function (prism) {
     var res = [];
     if (prism instanceof Column) { 
@@ -148,6 +143,17 @@ Column.prototype.loc = function (prism) {
     }
     var title = 'Filtered ' + this.title;
     return new Column(res, title);
+};
+
+Column.prototype.forEach = function (callback) {
+    // callback = function (value, index, column_name)
+    for (var i = 0; i < this.rowcnt; i++) {
+        callback(this.get_value(i), i);
+    }
+};
+
+Column.prototype.copy = function (task, defaults) {
+    return new Column(this.get_values(), this.title);
 };
 
 Column.prototype.toString = function () {
