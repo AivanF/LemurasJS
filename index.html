@@ -22,6 +22,7 @@ LemurasJS is available in console...
 		var t = new lemuras.Table(columns, rows, 'MyTable');
 		t.add_row(['phi', 1.618034, 2]);
 		t.add_column([-2560, 1618, -300], 'when');
+		console.log('' + t.row(1));
 		t.delete_row(1);
 		t.delete_column('name');
 		console.log(t);

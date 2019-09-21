@@ -164,9 +164,9 @@ Column.prototype.toString = function () {
     var values = this.get_values().slice(0, n).map(m_utils.partial(m_utils.repr_cell, [undefined, true]));
     var res;
     if (!this.values) {
-        res = m_utils.format('- Column "{}" of table "{}", ', [this.title, this.table.title]);
+        res = '- Column "{}" of table "{}", '.format(this.title, this.table.title);
     } else {
-        res = m_utils.format('- Column "{}", ', [this.title]);
+        res = '- Column "{}", '.format(this.title);
     }
     res += this.rowcnt + ' values\n' + values.join(', ');
     if (ns) {

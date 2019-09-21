@@ -21,7 +21,7 @@ var Row = function (table, row_index, values, columns) {
     this.table = table;
     this.row_index = row_index;
     this.values = values;
-    this.column_names = column_names;
+    this.column_names = columns;
 };
 
 Object.defineProperty(Row.prototype, 'colcnt', {
@@ -94,7 +94,7 @@ Row.prototype.calc = function (task, abc) {
     }
     var args = [this.get_values()];
     args = args.concat( m_utils.args2array(args2array).slice(1) );
-    return task.apply(null, );
+    return task.apply(null, args);
 };
 
 Row.prototype.copy = function () {
@@ -103,6 +103,18 @@ Row.prototype.copy = function () {
 
 Row.prototype.length = function () {
     return this.colcnt;
+};
+
+Row.prototype.toString = function () {
+    var values = this.get_values().map(m_utils.partial(m_utils.repr_cell, [undefined, true]));
+    var res;
+    if (!this.values) {
+        res = '- Row {} of table "{}"'.format(this.row_index, this.table.title);
+    } else {
+        res = '- Row independent';
+    }
+    res += '\n' + values.join(', ');
+    return res;
 };
 
 

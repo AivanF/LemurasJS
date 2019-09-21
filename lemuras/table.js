@@ -2,6 +2,7 @@
 var m_utils = require('./utils');
 var m_processing = require('./processing');
 var m_column = require('./column');
+var m_row = require('./row');
 
 var Table = function (columns, rows, title) {
     // TODO: check called with "new"
@@ -174,8 +175,7 @@ Table.from_rows = function (rows, columns, title, preprocess) {
 };
 
 Table.prototype.row = function (row_index) {
-    // TODO: replace with Row object
-    return this.rows[row_index];
+    return new m_row.Row(this, row_index);
 };
 
 Table.prototype.row_named = function (row_index) {
@@ -189,14 +189,21 @@ Table.prototype.row_named = function (row_index) {
 Table.prototype.add_row = function (data, strict, preprocess) {
     if (m_utils.is_undefined(strict)) { strict = true; }
     var row = [];
-    if (Array.isArray(data)) {
+    if (data instanceof m_row.Row) {
+        if (this.colcnt != data.colcnt) {
+            throw Error('Table.add_row Row argument must have length equal to columns count!');
+        }
+        for (var i = 0; i < this.colcnt; i++) {
+            row.push(preprocess ? m_processing.parse_value(data.get_value(i)) : data.get_value(i));
+        }
+    } else if (Array.isArray(data)) {
         if (this.colcnt != data.length) {
             throw Error('Table.add_row array argument must have length equal to columns count!');
         }
         for (var i = 0; i < this.colcnt; i++) {
             row.push(preprocess ? m_processing.parse_value(data[i]) : data[i]);
         }
-    } else { // TODO: add Row object support
+    } else {
         var key;
         for (var i = 0; i < this.colcnt; i++) {
             key = this._columns[i];
