@@ -4,6 +4,10 @@ function is_undefined(value) {
     return typeof value === 'undefined';
 }
 
+function is_nil(value) {
+    return is_undefined(value) || (value === null);
+}
+
 function is_string(value) {
     return (typeof value === 'string' || value instanceof String);
 }
@@ -103,13 +107,19 @@ String.prototype.format = function() {
     return res;
 }
 
+function args2array(args) {
+    return [].slice.apply(args);
+}
+
 
 module.exports = {
     is_undefined: is_undefined,
+    is_nil: is_nil,
     is_string: is_string,
     is_int: is_int,
     is_float: is_float,
     repr_cell: repr_cell,
     get_type: get_type,
     partial: partial,
+    args2array: args2array,
 };

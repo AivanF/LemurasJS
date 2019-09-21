@@ -18,11 +18,14 @@ LemurasJS is available in console...
 		var rows = [
 			['pi',  3.1415926535, 0],
 			['e',   2.7182818284, 1],
-			['phi', 1.618034, 2],
 		];
 		var t = new lemuras.Table(columns, rows, 'MyTable');
-		t.set_column('hm', [-2560, 1618, -300]);
+		t.add_row(['phi', 1.618034, 2]);
+		t.add_column([-2560, 1618, -300], 'when');
+		t.delete_row(1);
+		t.delete_column('name');
 		console.log(t);
+		console.log(t.find_types());
 
 		var c;
 		// c = t.column('key');
