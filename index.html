@@ -22,30 +22,38 @@ LemurasJS is available in console...
 		var t = new lemuras.Table(columns, rows, 'MyTable');
 		t.add_row(['phi', 1.618034, 2]);
 		t.add_column([-2560, 1618, -300], 'when');
-		console.log('' + t.row(1));
-		t.delete_row(1);
-		t.delete_column('name');
+		// console.log('' + t.row(1));
+		// t.delete_row(1);
+		// t.delete_column('name');
+		t.sort('when', 0);
 		console.log(t);
-		console.log(t.find_types());
+		// console.log(t.find_types());
 
-		console.log('' + t.calc(function(row, k, p){
-			return Math.floor(row.get_value(k)*10 + p);
-		}, 'value', 4).calc('sum'));
+		// console.log('' + t.calc(function(row, k, p){
+		// 	return Math.floor(row.get_value(k)*10 + p);
+		// }, 'value', 4).calc('sum'));
 
 		var c;
 		// c = t.column('key');
 		// c = lemuras.Column.make_index(5);
 		// c = c.apply('isin', [undefined, ['pi']]);
 		// c = c.isin(['pi', 'lol']);
-		c = t.column('id').add(t.column('value')).sub(3).mul(100).apply('int').mod(10).gt(2);
-		console.log(c);
-		console.log(c.get_type());
+		// c = t.column('id').add(t.column('value')).sub(3).mul(100).apply('int').mod(10).gt(2);
+		// console.log(c);
+		// console.log(c.get_type());
 		// console.log(t.cell('key', 1));
 
-		var f = lemuras.formula('( (tbl[["id"]]+tbl[["value"]]) -3 *(5\\*20) ).apply("int") %10 >2', ['tbl']);
-		console.log('"{}" => "{}"'.format(f.source, f.parsed));
-		c = f(t);
-		console.log(c);
+		var fc = '( (tbl[["id"]]+tbl[["value"]]) -3 *(5\\*20) ).apply("int") %10 >2';
+		// var fc = 'df[["weight"]]>df[["size"]]';
+		// console.log(lemuras.extract_names(fc));
+
+		var f = lemuras.formula(fc);
+		console.log('"{}" => "{}"\nArguments: {}'.format(f.source, f.parsed, f.args));
+		console.log(f(t));
+
+		// var fc2 = '(tbl[["value"]] - tbl[["id"]] * 10) .apply("int")';
+		// var f2 = lemuras.formula(fc2);
+		// console.log(f2(t));
 	}
 	main();
 </script>

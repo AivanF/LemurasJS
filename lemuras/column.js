@@ -304,7 +304,7 @@ Column.prototype.mod = function (other) {
 };
 Column.prototype.pow = function (other) {
     return this._op2(other, function (a, b) {
-        return Math.power(a, b);
+        return Math.pow(a, b);
     });
 };
 Column.prototype.gt = function (other) {

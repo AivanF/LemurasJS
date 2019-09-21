@@ -30,9 +30,68 @@ var formula_op1 = {
     '#': 'abs',
 }
 
+function extract_names(code) {
+    var i, last = 0;
+    var property = false;
+    var quote_mode = null; // null or ' or "
+    var cur, prev = null;
+    var names = [];
+    function try_add(i) {
+        if (property) {
+            return;
+        }
+        if (i > last) {
+            var name = code.slice(last, i);
+            if (!m_utils.isLetter(name[0])) {
+                return;
+            }
+            if (names.indexOf(name) >= 0) {
+                return;
+            }
+            if (!globalThis[name]) {
+                names.push(name);
+            }
+        }
+    }
+    for (i = 0; i < code.length; i++) {
+        cur = code[i];
+        if (quote_mode) {
+            if (cur == quote_mode && prev != '\\') {
+                quote_mode = null;
+                last = i+1;
+            }
+        } else {
+            if (cur == '"') {
+                quote_mode = '"';
+            } else if (cur == "'") {
+                quote_mode = "'";
+            } else if (cur == '.') {
+                property = true;
+            } else if (cur == '_' || m_utils.isLetter(cur)) {
+                // pass as a valid symbol
+            } else if (m_utils.isDigit(cur)) {
+                if (last == i-1) {
+                    property = true;
+                } else {
+                    // pass as a valid symbol
+                }
+            } else {
+                try_add(i);
+                property = false;
+                last = i+1;
+            }
+        }
+        prev = cur;
+    }
+    try_add(i);
+    return names;
+}
+
 function parse_formula(code) {
-    // TODO: add column.agg() support
-    // TODO: transform table[["field"]]=... to table.set_column("field", ...)
+    // TODO: transform column.int(...) to column.apply('int', ...)
+    // TODO: transform column.sum(...) to column.calc('sum', ...)
+    // TODO: transform table[["field"]]:=... to table.set_column("field", ...)
+    // TODO: transform table[["field"]]((j)):=... to table.column("field").set_value(j, ...)
 
     // Translate operations
     var cur, nex, prev = null;
@@ -110,26 +169,43 @@ function parse_formula(code) {
         throw new SyntaxError('Bad parentheses count!');
     }
     // Translate tbl["field"] to tbl.column("field")
+    // TODO: prevent replacing in strings
     res = res.replaceAll('[[', '.column(');
     res = res.replaceAll(']]', ')');
     return res;
 }
 
-function formula(source_code, args) {
+var formulas_cache = {};
+
+function create_formula(source_code, formula_args) {
+    if (formulas_cache[source_code]) {
+        return formulas_cache[source_code];
+    }
     var parsed = null;
     try {
         parsed = parse_formula(source_code);
-        args = args || [];
-        args = [null].concat(args.concat(['return ' + parsed + ';']));
-        var res = new (Function.prototype.bind.apply(Function, args));
-        res.source = source_code;
-        res.parsed = parsed;
-        return res;
+        if (!formula_args) {
+            formula_args = extract_names(source_code);
+        }
+        var args = [null].concat(formula_args.concat(['return ' + parsed + ';']));
+        var inner = new (Function.prototype.bind.apply(Function, args));
+        var Formula = function () {
+            if (formula_args.length != arguments.length) {
+                throw new Error('Formula requires {} arguments, but {} were given'.format(formula_args.length, arguments.length));
+            }
+            return inner.apply(null, arguments);
+        }
+        Formula.source = source_code;
+        Formula.parsed = parsed;
+        Formula.args = formula_args;
+        formulas_cache[source_code] = Formula;
+        return Formula;
     } catch (err) {
         throw new SyntaxError('Got {}: {}\nParsing {}\nTo {}'.format(err.name, err.message, source_code, parsed));
     }
 }
 
 module.exports = {
-    formula: formula,
+    extract_names: extract_names,
+    formula: create_formula,
 };

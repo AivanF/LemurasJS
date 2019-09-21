@@ -24,6 +24,14 @@ function is_float(value) {
     return parseFloat(value) === value;
 }
 
+function isLetter(c) {
+    return c.toLowerCase() != c.toUpperCase();
+}
+
+function isDigit(c) {
+    return c*0 == 0;
+}
+
 function repr_cell(value, quote_strings) {
     if (is_string(value) && quote_strings) {
         return '"' + value + '"';
@@ -118,6 +126,8 @@ module.exports = {
     is_string: is_string,
     is_int: is_int,
     is_float: is_float,
+    isLetter: isLetter,
+    isDigit: isDigit,
     repr_cell: repr_cell,
     get_type: get_type,
     partial: partial,

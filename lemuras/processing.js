@@ -54,7 +54,7 @@ function std(list, ddof, mean) {
 function distinct(list) {
     var res = [];
     list.forEach(function (value) {
-        if (list.indexOf(value) < 0) {
+        if (res.indexOf(value) < 0) {
             res.push(value);
         }
     });

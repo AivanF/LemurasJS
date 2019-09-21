@@ -61,9 +61,12 @@ Table.prototype.set_cell = function (column, row_index, value) {
 
 Table.prototype.column = function (column) {
     if (m_utils.is_string(column)) {
-        column = this.column_indices[column];
-    } else if (!m_utils.is_int(column)) {
-        throw Error('Bad column key ' + column);
+        if (!m_utils.is_undefined(this.column_indices[column])) {
+            column = this.column_indices[column];
+        }
+    }
+    if (!m_utils.is_int(column)) {
+        throw TypeError('Bad column key {}'.format(column));
     }
     return new m_column.Column(null, this._columns[column], this, this._columns[column]);
 };
@@ -270,6 +273,84 @@ Table.prototype.calc = function (task, abc) {
         res.push(task.apply(null, args));
     }
     return new m_column.Column(res, 'Calc');
+};
+
+Table.prototype.loc = function (prism, separate) {
+    if (!(prism instanceof m_column.Column)) {
+        throw TypeError('Table.loc takes one Column argument');
+    }
+    if (prism.length != this.rowcnt) {
+        throw Error('Table.loc argument length must be the same');
+    }
+    var res = [];
+    var checker;
+    for (var i = 0; i < this.rowcnt; i++) {
+        checker = prism.get_value(i);
+        if (checker) {
+            if (separate) {
+                res.push(this.rows[i].slice());
+            } else {
+                res.push(this.rows[i]);
+            }
+        }
+    }
+    var title = 'Filtered {}'.format(this.title);
+    var columns;
+    if (separate) {
+        title += ' Copy';
+        columns = this._columns;
+    } else {
+        columns = this._columns.slice();
+    }
+    return new Table(columns, res, title);
+};
+
+function comparify(v1, v2, inv) {
+    if (inv) {
+        var tmp = v2;
+        v2 = v1;
+        v1 = tmp;
+    }
+    if (v1 < v2) {
+        return -1;
+    } else if (v1 > v2) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+Table.prototype.sort = function (columns, asc) {
+    if (!Array.isArray(columns)) {
+        columns = [columns];
+    }
+    if (m_utils.is_undefined(asc)) {
+        asc = false;
+    }
+    var key, order;
+    for (var i = columns.length-1; i >= 0; i--) {
+        key = columns[i];
+        if (m_utils.is_string(key)) {
+            key = this.column_indices[key];
+        }
+        if (Array.isArray(asc)) {
+            order = asc[i];
+        } else {
+            order = asc;
+        }
+        this.rows.sort(function (row1, row2) {
+            return comparify(row1[key], row2[key], !order);
+        });
+    }
+};
+
+Table.prototype.copy = function () {
+    var columns = this._columns.slice();
+    var rows = [];
+    for (var i = 0; i < this.rowcnt; i++) {
+        rows.push(this.rows[i].slice());
+    }
+    return new Table(columns, rows, this.title);
 };
 
 
