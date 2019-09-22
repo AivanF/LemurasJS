@@ -30,8 +30,11 @@ LemurasJS is available in console...
 		// console.log(t.find_types());
 
 		var g = t.groupby('id');
-		console.log(g);
-		console.log(g.agg({'name': 'count'}));
+		console.log('' + g);
+		console.log(g.counts());
+		// console.log(g.get_group(1));
+		// console.log(g.split(true, true));
+		// console.log(g.agg({'name': 'count'}));
 
 		// console.log('' + t.calc(function(row, k, p){
 		// 	return Math.floor(row.get_value(k)*10 + p);

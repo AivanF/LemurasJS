@@ -123,6 +123,14 @@ String.prototype.format = function() {
     return res;
 }
 
+function arrayCreate(length, def) {
+    var res = Array(length);
+    for (var i = 0; i < length; i++) {
+        res[i] = def;
+    }
+    return res;
+}
+
 function args2array(args) {
     return [].slice.apply(args);
 }
@@ -137,6 +145,7 @@ function list_of_lists(length) {
 
 
 module.exports = {
+    // Type checking
     is_undefined: is_undefined,
     is_nil: is_nil,
     is_string: is_string,
@@ -146,9 +155,12 @@ module.exports = {
     is_function: is_function,
     isLetter: isLetter,
     isDigit: isDigit,
+    // Types handling
     repr_cell: repr_cell,
     get_type: get_type,
+    // Utility functions
     partial: partial,
+    arrayCreate: arrayCreate,
     args2array: args2array,
     list_of_lists: list_of_lists,
 };

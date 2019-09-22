@@ -52,6 +52,7 @@ Object.defineProperty(Table.prototype, 'rowcnt', {
 });
 
 Table.prototype.cell = function (column, row_index) {
+    row_index = row_index || 0;
     if (m_utils.is_string(column)) {
         var ind = this.column_indices[column];
         if (m_utils.is_undefined(ind)) {
@@ -110,13 +111,15 @@ Table.prototype.add_column = function (data, title) {
     }
     if (this.rowcnt == 0 && this.colcnt == 0) {
         if (data instanceof m_column.Column) {
-            for (var i = this.rowcnt - 1; i >= 0; i--) {
+            for (var i = data.rowcnt - 1; i >= 0; i--) {
                 this.rows.push([data.get_value(i)]);
             }
-        } else {
-            for (var i = this.rowcnt - 1; i >= 0; i--) {
+        } else if (Array.isArray(data)) {
+            for (var i = data.length - 1; i >= 0; i--) {
                 this.rows.push([data[i]]);
             }
+        } else {
+            throw TypeError('Table.add_column must be either an array or Column object! Got {}'.format(typeof data));
         }
     } else {
         if (this.rowcnt != data.length) {
@@ -126,10 +129,12 @@ Table.prototype.add_column = function (data, title) {
             for (var i = this.rowcnt - 1; i >= 0; i--) {
                 this.rows[i].push(data.get_value(i));
             }
-        } else {
+        } else if (Array.isArray(data)) {
             for (var i = this.rowcnt - 1; i >= 0; i--) {
                 this.rows[i].push(data[i]);
             }
+        } else {
+            throw TypeError('Table.add_column must be either an array or Column object! Got {}'.format(typeof data));
         }
     }
     this.column_indices[title] = this.colcnt;
@@ -383,8 +388,8 @@ Table.prototype.groupby = function (key_columns) {
         key_columns = [key_columns];
     }
     for (var i = 0; i < key_columns.length; i++) {
-        if (!this.column_indices[key_columns[i]]) {
-            throw Error('GroupBy arg "{}" is not a Table column name!'.format(name));
+        if (m_utils.is_undefined(this.column_indices[key_columns[i]])) {
+            throw Error('GroupBy arg "{}" is not a Table column name!'.format(key_columns[i]));
         }
     }
     var m_grouped = require('./grouped');

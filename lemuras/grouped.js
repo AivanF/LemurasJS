@@ -5,7 +5,7 @@ var m_table = require('./table');
 
 var Grouped = function (key_columns, source_columns, source_column_indices, source_name) {
     if (!m_utils.is_string(source_name)) {
-        throw TypeError('Grouped source_name must be a string, but "{}" given'.format(source_name));
+        throw new TypeError('Grouped source_name must be a string, but "{}" given'.format(source_name));
     }
     this.source_name = source_name;
     this.keys = key_columns;
@@ -39,8 +39,14 @@ var Grouped = function (key_columns, source_columns, source_column_indices, sour
     if (this.key_count > 0) {
         this.values = {};
     } else {
-        this.values = m_utils.list_of_lists(this.agg_column2ind.length);
+        this.values = m_utils.list_of_lists(Object.keys(this.agg_column2ind).length);
     }
+
+    // JS converts dict keys to strings,
+    // So there is a need to store values
+    // of key fields with original types
+    // This dict is: own_key_id => str_value => original_value
+    this.source_values = {};
 };
 
 Grouped.prototype.add = function (row) {
@@ -49,6 +55,8 @@ Grouped.prototype.add = function (row) {
         var last = i == this.key_count-1;
         var ind = this.ownkey2srckey[i];
         var cur = row.get_value(ind);
+        this.source_values[i] = this.source_values[i] || {};
+        this.source_values[i][cur] = cur;
         if (!vals[cur]) {
             if (last) {
                 // Store columns independently
@@ -83,17 +91,17 @@ Grouped.prototype._agglist = function (keys, cols) {
                 if (m_processing.aggfuns[task]) {
                     got = m_processing.aggfuns[task](cur_col);
                 } else {
-                    throw Error('Aggregation function "{}" does not exist!'.format(task));
+                    throw new Error('Aggregation function "{}" does not exist!'.format(task));
                 }
             } else {
                 if (m_utils.is_function(task)) {
                     got = task(cur_col);
                 } else {
-                    throw Error('Aggregation function must be a callable!');
+                    throw new TypeError('Aggregation function must be a function!');
                 }
             }
             if (m_utils.is_undefined(got)) {
-                throw Error('Aggregation function returned undefined!');
+                throw new Error('Aggregation function returned undefined!');
             }
             res.push(got);
         }
@@ -101,10 +109,12 @@ Grouped.prototype._agglist = function (keys, cols) {
     return res;
 };
 
-Grouped.prototype._recurs = function (task, vals, keys) {
+Grouped.prototype._recurs = function (task, vals, keys, ind) {
     vals = vals || this.values;
     keys = keys || [];
+    ind = ind || 0;
     var res = [];
+    var new_keys;
     if (Array.isArray(vals)) {
         var v = task(keys, vals);
         if (!m_utils.is_undefined(v)) {
@@ -112,7 +122,9 @@ Grouped.prototype._recurs = function (task, vals, keys) {
         }
     } else {
         for (var key in vals) {
-            res = res.concat(this._recurs(task, vals[key], [].concat(keys).concat([key])));
+            // Add previous keys and this key value with proper type
+            new_keys = [].concat(keys).concat([this.source_values[ind][key]]);
+            res = res.concat(this._recurs(task, vals[key], new_keys, ind+1));
         }
     }
     return res;
@@ -151,8 +163,7 @@ Grouped.prototype.agg = function (fun, default_fun) {
         }
     }
     this.fun = fun;
-    console.log(this.fun);
-    var cols = this.keys;
+    var cols = this.keys.slice();
     for (var target_name in fun) {
         for (var new_name in fun[target_name]) {
             cols.push(new_name);
@@ -163,6 +174,79 @@ Grouped.prototype.agg = function (fun, default_fun) {
         return self._agglist(keys, vals);
     });
     return new m_table.Table(cols, rows, 'Aggregated ' + this.source_name);
+};
+
+Grouped.prototype._make_group = function (keys, cols, add_keys, pairs) {
+    var t = 'Group';
+    var ids = {};
+    for (var i = 0; i < this.keys.length; i++) {
+        t += ' {}={}'.format(this.keys[i], keys[i]);
+        if (pairs) {
+            ids[this.keys[i]] = keys[i];
+        }
+    }
+    var res = new m_table.Table([], [], t);
+    if (add_keys) {
+        for (var i = 0; i < this.keys.length; i++) {
+            res.add_column(m_utils.arrayCreate(cols[0].length, keys[i]), this.keys[i]);
+        }
+    }
+    for (var el in this.agg_column2ind) {
+        res.add_column(cols[this.agg_column2ind[el]], el);
+    }
+    if (pairs) {
+        return [ids, res];
+    } else {
+        return res;
+    }
+};
+
+Grouped.prototype.split = function (add_keys, pairs) {
+    var self = this;
+    return this._recurs(function (keys, cols) {
+        return self._make_group(keys, cols, add_keys, pairs);
+    });
+};
+
+Grouped.prototype.get_group = function (search_keys, add_keys) {
+    if (m_utils.is_undefined(add_keys)) {
+        add_keys = true;
+    }
+    // TODO: add support for search_keys as dict
+    if (!Array.isArray(search_keys)) {
+        search_keys = [search_keys];
+    }
+    var self = this;
+    function find_table(keys, cols) {
+        var matched = true;
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i] != search_keys[i]) {
+                matched = false;
+                break;
+            }
+        }
+        if (matched) {
+            return self._make_group(keys, cols, add_keys, false);
+        }
+    }
+    // No check is needed because undefined
+    // will be returned for missing values
+    return this._recurs(find_table)[0];
+};
+
+Grouped.prototype.counts = function () {
+    var rows = [];
+    function task(keys, cols) {
+        rows.push([].concat(keys).concat([cols[0].length]));
+    }
+    this._recurs(task);
+    return new m_table.Table([].concat(this.keys).concat(['rows']), rows, 'Groups');
+};
+
+Grouped.prototype.toString = function () {
+    return '- Grouped object "{}", keys: [{}], old columns: [{}].'.format(
+        this.source_name, this.keys, Object.keys(this.agg_column2ind)
+    )
 };
 
 module.exports = {

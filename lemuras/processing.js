@@ -257,15 +257,16 @@ function parse_value(value, empty) {
     if (!is_none) {
         return res;
     }
-    var res = parse_float(value, null);
+    res = parse_float(value, null);
     if (!is_none) {
         return res;
     }
-    // var res = parse_date(value, null);
+    // TODO: add Date object support
+    // res = parse_date(value, null);
     // if (!is_none) {
     //     return res;
     // }
-    res = value.toString().toLowerCase()
+    res = value.toString().toLowerCase();
     if (res == 'none' || res == 'null' || res.length == 0) {
         return empty;
     }
@@ -279,11 +280,31 @@ function parse_row(list, empty) {
     return list;
 }
 
+// function convert_value(value, type) {
+//     if (type == 'i') {
+//         return parse_int(value);
+//     } else if (type == 'f') {
+//         return parse_float(value);
+//     } else if (type == 'b') {
+//         return parse_float(value);
+//     } else if (type == 's') {
+//         return make_str(value);
+//     // TODO: add Date object support
+//     // } else if (type == 'd') {
+//     //     return parse_date(value);
+//     } else {
+//         return value;
+//     }
+// }
+
 
 module.exports = {
+    // Function storages
     aggfuns: aggfuns,
     typefuns: typefuns,
     applyfuns: applyfuns,
+    // Types handling
     parse_value: parse_value,
     parse_row: parse_row,
+    // convert_value: convert_value,
 };
