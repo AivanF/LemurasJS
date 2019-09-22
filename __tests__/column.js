@@ -3,8 +3,6 @@ const m_data = require('../other/sample_data.js');
 const lemuras = require('../lemuras/init.js');
 const F = lemuras.F;
 
-let cdates = new lemuras.Column(['2018-12-30', '14.09.1983', '02/15/1916'], 'Dates');
-
 describe('Column class', function () {
 	test('Creation', function () {
 		// Column constructor arguments:
@@ -107,6 +105,12 @@ describe('Column class', function () {
 	test('Apply', function () {
 		// It has not so many meaning for JS version of Lemuras
 		// Because Column.apply will always work in place
+
+		let cdates = new lemuras.Column(
+			['2018-12-30', '14.09.1983', '02/15/1916'], 'Dates'
+		);
+		cdates.apply('date').apply('isinstance', Date);
+		expect(cdates.calc('sum')).toEqual(3);
 	});
 
 	test('Table', function () {

@@ -195,6 +195,50 @@ function parse_float(value, def) {
     return def;
 }
 
+function parse_date_format(_date, _format) {
+    // https://stackoverflow.com/a/25961926/5308802
+    var _delimiter = _format.match(/\W/g)[0];
+    var formatLowerCase = _format.toLowerCase();
+    var formatItems = formatLowerCase.split(_delimiter);
+    var dateItems = _date.split(_delimiter);
+    var monthIndex = formatItems.indexOf("mm");
+    var dayIndex = formatItems.indexOf("dd");
+    var yearIndex = formatItems.indexOf("yyyy");
+    var month = parseInt(dateItems[monthIndex]);
+    month -= 1;
+    var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex]);
+    return formatedDate;
+}
+
+function parse_date(value, def) {
+    if (m_utils.is_undefined(def)) {
+        def = null;
+    }
+    if (value instanceof Date) {
+        return value;
+    } else if (m_utils.is_string(value)) {
+        var res = new Date(value);
+        // Try usual JS format firstly
+        if (!isNaN(res)) {
+            return res;
+        }
+        // TODO: add support for time
+        value = value.split(' ')[0];
+        if (value.indexOf('/') > 0) {
+            res = parse_date_format(value, 'mm/dd/yyyy');
+        } else if (value.indexOf('-') > 0) {
+            res = parse_date_format(value, 'yyyy-mm-dd');
+        } else if (value.indexOf('.') > 0) {
+            res = parse_date_format(value, 'dd.mm.yyyy');
+        }
+        if (!isNaN(res)) {
+            return res;
+        }
+
+    }
+    return def;
+}
+
 function is_none(value) {
     return Number.isNaN(value) || m_utils.is_undefined(value) || value === null;
 }
@@ -214,7 +258,7 @@ var typefuns = {
     str: make_str,
     int: parse_int,
     float: parse_float,
-    // date: parse_date, // TODO: here!
+    date: parse_date,
     none_to: none_to,
 }
 
@@ -240,9 +284,7 @@ var applyfuns = {
         return (typeof value) == type;
     },
     isinstance: function (value, type) {
-        var r = value instanceof type;
-        console.log(value, type, r);
-        return r;
+        return value instanceof type;
     },
 
     is_string: m_utils.is_string,
@@ -254,18 +296,17 @@ var applyfuns = {
 
 function parse_value(value, empty) {
     var res = parse_int(value, null, false);
-    if (!is_none) {
+    if (!is_none(res)) {
         return res;
     }
     res = parse_float(value, null);
-    if (!is_none) {
+    if (!is_none(res)) {
         return res;
     }
-    // TODO: add Date object support
-    // res = parse_date(value, null);
-    // if (!is_none) {
-    //     return res;
-    // }
+    res = parse_date(value, null);
+    if (!is_none(res)) {
+        return res;
+    }
     res = value.toString().toLowerCase();
     if (res == 'none' || res == 'null' || res.length == 0) {
         return empty;
@@ -280,23 +321,6 @@ function parse_row(list, empty) {
     return list;
 }
 
-// function convert_value(value, type) {
-//     if (type == 'i') {
-//         return parse_int(value);
-//     } else if (type == 'f') {
-//         return parse_float(value);
-//     } else if (type == 'b') {
-//         return parse_float(value);
-//     } else if (type == 's') {
-//         return make_str(value);
-//     // TODO: add Date object support
-//     // } else if (type == 'd') {
-//     //     return parse_date(value);
-//     } else {
-//         return value;
-//     }
-// }
-
 
 module.exports = {
     // Function storages
@@ -306,5 +330,4 @@ module.exports = {
     // Types handling
     parse_value: parse_value,
     parse_row: parse_row,
-    // convert_value: convert_value,
 };
