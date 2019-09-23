@@ -58,7 +58,7 @@ Column.make = function (length, value, title) {
     for (var i = 0; i < length; i++) {
         values.push(value);
     }
-    return Column(values, title);
+    return new Column(values, title);
 };
 
 Column.make_index = function (length, title) {

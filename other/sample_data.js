@@ -13,7 +13,7 @@ const rows = [
 const df1 = new m_table.Table(cols, rows, 'Sample');
 
 module.exports = {
-    cols: cols,
-    rows: rows,
-    df1: df1,
+	cols: cols,
+	rows: rows,
+	df1: df1,
 };
