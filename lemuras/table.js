@@ -416,6 +416,98 @@ Table.merge = function (tl, tr, keys, how, empty) {
     throw new Error('Not implemented!');
 };
 
+Table.prototype.folds = function (fold_count, start) {
+    if (m_utils.is_undefined(start)) {
+        start = 0;
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.from_csv = function (data, empty, preprocess, title, delimiter, quotechar) {
+    if (m_utils.is_undefined(preprocess)) {
+        preprocess = true;
+    }
+    if (m_utils.is_undefined(title)) {
+        title = 'from CSV';
+    }
+    if (m_utils.is_undefined(delimiter)) {
+        delimiter = ',';
+    }
+    if (m_utils.is_undefined(quotechar)) {
+        quotechar = '"';
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.prototype.to_csv = function (delimiter, quotechar) {
+    if (m_utils.is_undefined(delimiter)) {
+        delimiter = ',';
+    }
+    if (m_utils.is_undefined(quotechar)) {
+        quotechar = '"';
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.prototype.to_sql_create = function () {
+    throw new Error('Not implemented!');
+};
+
+Table.prototype.to_sql_values = function () {
+    throw new Error('Not implemented!');
+};
+
+Table.from_sql_create = function (data) {
+    throw new Error('Not implemented!');
+};
+
+Table.from_sql_result = function (data, empty, preprocess, title) {
+    if (m_utils.is_undefined(preprocess)) {
+        preprocess = true;
+    }
+    if (m_utils.is_undefined(title)) {
+        title = 'from SQL res';
+    }
+    if (m_utils.is_undefined(empty)) {
+        empty = null;
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.prototype.add_sql_values = function (data, empty) {
+    if (m_utils.is_undefined(empty)) {
+        empty = null;
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.from_json = function (data, preprocess, title) {
+    if (m_utils.is_undefined(preprocess)) {
+        preprocess = true;
+    }
+    if (m_utils.is_undefined(title)) {
+        title = 'from JSON';
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.prototype.to_json = function (as_dict, pretty) {
+    if (m_utils.is_undefined(as_dict)) {
+        as_dict = false;
+    }
+    if (m_utils.is_undefined(pretty)) {
+        pretty = false;
+    }
+    throw new Error('Not implemented!');
+};
+
+Table.from_html = function (data, title) {
+    if (m_utils.is_undefined(title)) {
+        title = 'from HTML';
+    }
+    throw new Error('Not implemented!');
+};
+
 Table.prototype._check_query = function (query) {
     if (!m_utils.is_dict(query)) {
         throw new TypeError('Query must be a dictionary!');
@@ -481,8 +573,60 @@ Table.prototype.copy = function () {
     return new Table(columns, rows, this.title);
 };
 
-Table.prototype.toString = function () {
+Table.minshowrows = 4;
+Table.maxshowrows = 7;
+Table.minshowcols = 6;
+Table.maxshowcols = 8;
+
+Table.prototype.__need_cut__ = function (cut) {
+    if (m_utils.is_undefined(cut)) {
+        cut = true;
+    }
+    var res = {
+        showrowscnt: Table.minshowrows,
+        showcolscnt: Table.minshowcols,
+        hiddenrows: true,
+        hiddencols: true,
+    }
+    if (!cut || this.rowcnt <= Table.maxshowrows) {
+        res.showrowscnt = this.rowcnt;
+        res.hiddenrows = false;
+    }
+    if (!cut || this.colcnt <= Table.maxshowcols) {
+        res.showcolscnt = this.colcnt;
+        res.hiddencols = false;
+    }
+    return res;
+};
+
+Table.prototype.to_html = function (cut) {
+    var ctrl = this.__need_cut__(cut);
     throw new Error('Not implemented!');
+};
+
+Table.prototype.toString = function (cut) {
+    var ctrl = this.__need_cut__(cut);
+    var res = '- Table object, title: "{}", {} columns, {} rows.\n'.format(
+        this.title, this.colcnt, this.rowcnt
+    );
+    res += this._columns
+        .slice(0, ctrl.showcolscnt)
+        .map(m_utils.partial(m_utils.repr_cell, [undefined, true]))
+        .join(' ');
+    if (ctrl.hiddencols) {
+        res += ' ...';
+    }
+    for (var i = 0; i < ctrl.showrowscnt; i++) {
+        var row = this.rows[i];
+        res += '\n' + row
+            .slice(0, ctrl.showcolscnt)
+            .map(m_utils.partial(m_utils.repr_cell, [undefined, true]))
+            .join(' ');
+    }
+    if (ctrl.hiddenrows) {
+        res += '\n. . .';
+    }
+    return res;
 };
 
 
