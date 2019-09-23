@@ -403,7 +403,55 @@ Table.prototype.pivot = function (newcol, newrow, newval, empty, task) {
     if (U.is_undefined(task)) {
         task = 'first';
     }
-    throw new Error('Not implemented!');
+    var indcol = this.column_indices[newcol];
+    var indrow = this.column_indices[newrow];
+    var indval = this.column_indices[newval];
+    var colsels = [];
+    var rowsels = [];
+    // Dictionary with columns->rows->values
+    var values = {};
+
+    // Fill the dictionary
+    var row, curcol, currow, curval;
+    for (var i = 0; i < this.rowcnt; i++) {
+        row = this.rows[i];
+        curcol = '' + row[indcol];
+        currow = '' + row[indrow];
+        curval = row[indval];
+        if (colsels.indexOf(curcol) < 0) {
+            colsels.push(curcol);
+        }
+        if (rowsels.indexOf(currow) < 0) {
+            rowsels.push(currow);
+        }
+        if (U.is_undefined(values[curcol])) {
+            values[curcol] = {};
+        }
+        if (U.is_undefined(values[curcol][currow])) {
+            values[curcol][currow] = new C.Column([]);
+        }
+        values[curcol][currow].values.push(curval);
+    }
+
+    // Create plain rows
+    colsels = colsels.sort();
+    rowsels = rowsels.sort();
+    var rows = [];
+    var row;
+    for (var i = 0; i < rowsels.length; i++) {
+        currow = rowsels[i];
+        row = [currow];
+        for (var j = 0; j < colsels.length; j++) {
+            curcol = colsels[j];
+            if (U.is_undefined(values[curcol][currow])) {
+                row.push(empty);
+            } else {
+                row.push(values[curcol][currow].calc(task));
+            }
+        }
+        rows.push(row);
+    }
+    return new Table([newrow].concat(colsels), rows, 'Pivot of {}'.format(this.title))
 };
 
 Table.merge = function (tl, tr, keys, how, empty) {
