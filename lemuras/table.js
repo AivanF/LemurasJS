@@ -1,8 +1,8 @@
 // https://github.com/AivanF/LemurasJS
-var m_utils = require('./utils');
-var m_processing = require('./processing');
-var m_column = require('./column');
-var m_row = require('./row');
+var U = require('./utils');
+var P = require('./processing');
+var C = require('./column');
+var R = require('./row');
 
 var Table = function (columns, rows, title) {
     // TODO: check called with "new"
@@ -53,9 +53,9 @@ Object.defineProperty(Table.prototype, 'rowcnt', {
 
 Table.prototype.cell = function (column, row_index) {
     row_index = this._check_row(row_index);
-    if (m_utils.is_string(column)) {
+    if (U.is_string(column)) {
         var ind = this.column_indices[column];
-        if (m_utils.is_undefined(ind)) {
+        if (U.is_undefined(ind)) {
             throw new TypeError('Column {} does not exist!'.format(column));
         }
         column = ind;
@@ -65,22 +65,22 @@ Table.prototype.cell = function (column, row_index) {
 
 Table.prototype.set_cell = function (column, row_index, value) {
     row_index = this._check_row(row_index);
-    if (m_utils.is_string(column)) {
+    if (U.is_string(column)) {
         column = this.column_indices[column];
     }
     this.rows[row_index][column] = value;
 };
 
 Table.prototype.column = function (column) {
-    if (m_utils.is_string(column)) {
-        if (!m_utils.is_undefined(this.column_indices[column])) {
+    if (U.is_string(column)) {
+        if (!U.is_undefined(this.column_indices[column])) {
             column = this.column_indices[column];
         }
     }
-    if (!m_utils.is_int(column)) {
+    if (!U.is_int(column)) {
         throw new TypeError('Column {} does not exist!'.format(column));
     }
-    return new m_column.Column(null, this._columns[column], this, this._columns[column]);
+    return new C.Column(null, this._columns[column], this, this._columns[column]);
 };
 
 Table.prototype.set_column = function (column, data) {
@@ -88,11 +88,11 @@ Table.prototype.set_column = function (column, data) {
         throw new Error('Table.set_column data length ({}) must be equal to table rows count ({})'.format(data.length, this.rowcnt));
     }
     var ind = this.column_indices[column];
-    if (m_utils.is_undefined(ind)) {
+    if (U.is_undefined(ind)) {
         this.add_column(data, column);
         return;
     }
-    if (data instanceof m_column.Column) {
+    if (data instanceof C.Column) {
         for (var i = this.rowcnt - 1; i >= 0; i--) {
             this.rows[i][ind] = data.get_value(i);
         }
@@ -106,13 +106,13 @@ Table.prototype.set_column = function (column, data) {
 
 Table.prototype.add_column = function (data, title) {
     if (!title) {
-        if (data instanceof m_column.Column) {
+        if (data instanceof C.Column) {
             title = data.title;
         }
         title = 'c' + this.colcnt;
     }
     if (this.rowcnt == 0 && this.colcnt == 0) {
-        if (data instanceof m_column.Column) {
+        if (data instanceof C.Column) {
             for (var i = data.rowcnt - 1; i >= 0; i--) {
                 this.rows.push([data.get_value(i)]);
             }
@@ -127,7 +127,7 @@ Table.prototype.add_column = function (data, title) {
         if (this.rowcnt != data.length) {
             throw new Error('Table.add_column data length ({}) must be equal to table rows count ({})'.format(data.length, this.rowcnt));
         }
-        if (data instanceof m_column.Column) {
+        if (data instanceof C.Column) {
             for (var i = this.rowcnt - 1; i >= 0; i--) {
                 this.rows[i].push(data.get_value(i));
             }
@@ -144,7 +144,7 @@ Table.prototype.add_column = function (data, title) {
 };
 
 Table.prototype.delete_column = function (column) {
-    var ind = m_utils.is_string(column) ? this.column_indices[column] : column;
+    var ind = U.is_string(column) ? this.column_indices[column] : column;
     this._columns.splice(ind, 1);
     for (var i = this.rowcnt - 1; i >= 0; i--) {
         this.rows[i].splice(ind, 1);
@@ -195,20 +195,20 @@ Table.from_rows = function (rows, columns, title, preprocess) {
 };
 
 Table.prototype._check_row = function (row_index) {
-    if (m_utils.is_undefined(row_index)) {
+    if (U.is_undefined(row_index)) {
         return 0;
     }
     if (row_index < 0) {
         row_index += this.rowcnt;
     }
-    if (!m_utils.is_int(row_index) || row_index < 0 || row_index >= this.rowcnt) {
+    if (!U.is_int(row_index) || row_index < 0 || row_index >= this.rowcnt) {
         throw new TypeError('Bad row index!');
     }
     return row_index;
 };
 
 Table.prototype.row = function (row_index) {
-    return new m_row.Row(this, this._check_row(row_index));
+    return new R.Row(this, this._check_row(row_index));
 };
 
 Table.prototype.row_named = function (row_index) {
@@ -220,23 +220,23 @@ Table.prototype.row_named = function (row_index) {
 };
 
 Table.prototype.add_row = function (data, strict, preprocess) {
-    if (m_utils.is_undefined(strict)) { strict = true; }
+    if (U.is_undefined(strict)) { strict = true; }
     var row = [];
-    if (data instanceof m_row.Row) {
+    if (data instanceof R.Row) {
         if (this.colcnt != data.colcnt) {
             throw new Error('Table.add_row Row argument must have length equal to columns count!');
         }
         for (var i = 0; i < this.colcnt; i++) {
-            row.push(preprocess ? m_processing.parse_value(data.get_value(i)) : data.get_value(i));
+            row.push(preprocess ? P.parse_value(data.get_value(i)) : data.get_value(i));
         }
     } else if (Array.isArray(data)) {
         if (this.colcnt != data.length) {
             throw new Error('Table.add_row array argument must have length equal to columns count!');
         }
         for (var i = 0; i < this.colcnt; i++) {
-            row.push(preprocess ? m_processing.parse_value(data[i]) : data[i]);
+            row.push(preprocess ? P.parse_value(data[i]) : data[i]);
         }
-    } else if (m_utils.is_dict(data)) {
+    } else if (U.is_dict(data)) {
         var key;
         for (var i = 0; i < this.colcnt; i++) {
             key = this._columns[i];
@@ -247,7 +247,7 @@ Table.prototype.add_row = function (data, strict, preprocess) {
                     row.push(undefined);
                 }
             } else {
-                row.push(preprocess ? m_processing.parse_value(data[key]) : data[key]);
+                row.push(preprocess ? P.parse_value(data[key]) : data[key]);
             }
         }
     } else {
@@ -288,7 +288,7 @@ Table.concat = function (tables) {
 };
 
 Table.prototype.make_index = function (title) {
-    var res = m_column.Column.make_index(this.rowcnt);
+    var res = C.Column.make_index(this.rowcnt);
     if (title) {
         this.add_column(res, title);
     }
@@ -297,18 +297,18 @@ Table.prototype.make_index = function (title) {
 
 Table.prototype.calc = function (task, abc) {
     var res = [];
-    var row = new m_row.Row(this, 0);
+    var row = new R.Row(this, 0);
     var args = [row];
-    args = args.concat( m_utils.args2array(arguments).slice(1) );
+    args = args.concat( U.args2array(arguments).slice(1) );
     for (var i = 0; i < this.rowcnt; i++) {
         row.row_index = i;
         res.push(task.apply(null, args));
     }
-    return new m_column.Column(res, 'Calc');
+    return new C.Column(res, 'Calc');
 };
 
 Table.prototype.loc = function (prism, separate) {
-    if (!(prism instanceof m_column.Column)) {
+    if (!(prism instanceof C.Column)) {
         throw new TypeError('Table.loc takes one Column argument');
     }
     if (prism.length != this.rowcnt) {
@@ -356,13 +356,13 @@ Table.prototype.sort = function (columns, asc) {
     if (!Array.isArray(columns)) {
         columns = [columns];
     }
-    if (m_utils.is_undefined(asc)) {
+    if (U.is_undefined(asc)) {
         asc = true;
     }
     var key, order;
     for (var i = columns.length-1; i >= 0; i--) {
         key = columns[i];
-        if (m_utils.is_string(key)) {
+        if (U.is_string(key)) {
             key = this.column_indices[key];
         }
         if (Array.isArray(asc)) {
@@ -384,7 +384,7 @@ Table.prototype.groupby = function (key_columns) {
         key_columns = [key_columns];
     }
     for (var i = 0; i < key_columns.length; i++) {
-        if (m_utils.is_undefined(this.column_indices[key_columns[i]])) {
+        if (U.is_undefined(this.column_indices[key_columns[i]])) {
             throw new Error('GroupBy arg "{}" is not a Table column name!'.format(key_columns[i]));
         }
     }
@@ -397,53 +397,53 @@ Table.prototype.groupby = function (key_columns) {
 };
 
 Table.prototype.pivot = function (newcol, newrow, newval, empty, task) {
-    if (m_utils.is_undefined(empty)) {
+    if (U.is_undefined(empty)) {
         empty = null;
     }
-    if (m_utils.is_undefined(task)) {
+    if (U.is_undefined(task)) {
         task = 'first';
     }
     throw new Error('Not implemented!');
 };
 
 Table.merge = function (tl, tr, keys, how, empty) {
-    if (m_utils.is_undefined(how)) {
+    if (U.is_undefined(how)) {
         how = 'inner';
     }
-    if (m_utils.is_undefined(empty)) {
+    if (U.is_undefined(empty)) {
         empty = null;
     }
     throw new Error('Not implemented!');
 };
 
 Table.prototype.folds = function (fold_count, start) {
-    if (m_utils.is_undefined(start)) {
+    if (U.is_undefined(start)) {
         start = 0;
     }
     throw new Error('Not implemented!');
 };
 
 Table.from_csv = function (data, empty, preprocess, title, delimiter, quotechar) {
-    if (m_utils.is_undefined(preprocess)) {
+    if (U.is_undefined(preprocess)) {
         preprocess = true;
     }
-    if (m_utils.is_undefined(title)) {
+    if (U.is_undefined(title)) {
         title = 'from CSV';
     }
-    if (m_utils.is_undefined(delimiter)) {
+    if (U.is_undefined(delimiter)) {
         delimiter = ',';
     }
-    if (m_utils.is_undefined(quotechar)) {
+    if (U.is_undefined(quotechar)) {
         quotechar = '"';
     }
     throw new Error('Not implemented!');
 };
 
 Table.prototype.to_csv = function (delimiter, quotechar) {
-    if (m_utils.is_undefined(delimiter)) {
+    if (U.is_undefined(delimiter)) {
         delimiter = ',';
     }
-    if (m_utils.is_undefined(quotechar)) {
+    if (U.is_undefined(quotechar)) {
         quotechar = '"';
     }
     throw new Error('Not implemented!');
@@ -462,61 +462,61 @@ Table.from_sql_create = function (data) {
 };
 
 Table.from_sql_result = function (data, empty, preprocess, title) {
-    if (m_utils.is_undefined(preprocess)) {
+    if (U.is_undefined(preprocess)) {
         preprocess = true;
     }
-    if (m_utils.is_undefined(title)) {
+    if (U.is_undefined(title)) {
         title = 'from SQL res';
     }
-    if (m_utils.is_undefined(empty)) {
+    if (U.is_undefined(empty)) {
         empty = null;
     }
     throw new Error('Not implemented!');
 };
 
 Table.prototype.add_sql_values = function (data, empty) {
-    if (m_utils.is_undefined(empty)) {
+    if (U.is_undefined(empty)) {
         empty = null;
     }
     throw new Error('Not implemented!');
 };
 
 Table.from_json = function (data, preprocess, title) {
-    if (m_utils.is_undefined(preprocess)) {
+    if (U.is_undefined(preprocess)) {
         preprocess = true;
     }
-    if (m_utils.is_undefined(title)) {
+    if (U.is_undefined(title)) {
         title = 'from JSON';
     }
     throw new Error('Not implemented!');
 };
 
 Table.prototype.to_json = function (as_dict, pretty) {
-    if (m_utils.is_undefined(as_dict)) {
+    if (U.is_undefined(as_dict)) {
         as_dict = false;
     }
-    if (m_utils.is_undefined(pretty)) {
+    if (U.is_undefined(pretty)) {
         pretty = false;
     }
     throw new Error('Not implemented!');
 };
 
 Table.from_html = function (data, title) {
-    if (m_utils.is_undefined(title)) {
+    if (U.is_undefined(title)) {
         title = 'from HTML';
     }
     throw new Error('Not implemented!');
 };
 
 Table.prototype._check_query = function (query) {
-    if (!m_utils.is_dict(query)) {
+    if (!U.is_dict(query)) {
         throw new TypeError('Query must be a dictionary!');
     }
     if (Object.keys(query).length < 1) {
         throw new TypeError('Query must have at least one key!');
     }
     for (var key in query) {
-        if (m_utils.is_undefined(this.column_indices[key])) {
+        if (U.is_undefined(this.column_indices[key])) {
             throw new TypeError('Some query key is not a column name!');
         }
     }
@@ -542,7 +542,7 @@ Table.prototype.find = function (query) {
 
 Table.prototype.find_all = function (query) {
     this._check_query(query);
-    var checker = m_column.Column.make(this.rowcnt, true);
+    var checker = C.Column.make(this.rowcnt, true);
     for (var key in query) {
         checker = checker.and(this.column(key).eq(query[key]));
     }
@@ -557,7 +557,7 @@ Object.defineProperty(Table.prototype, 'length', {
 
 Table.prototype.forEach = function (callback) {
     // callback = function (row, index)
-    var row = new m_row.Row(this, 0);
+    var row = new R.Row(this, 0);
     for (var i = 0; i < this.rowcnt; i++) {
         row.row_index = i;
         callback(row, i);
@@ -579,7 +579,7 @@ Table.minshowcols = 6;
 Table.maxshowcols = 8;
 
 Table.prototype.__need_cut__ = function (cut) {
-    if (m_utils.is_undefined(cut)) {
+    if (U.is_undefined(cut)) {
         cut = true;
     }
     var res = {
@@ -611,7 +611,7 @@ Table.prototype.toString = function (cut) {
     );
     res += this._columns
         .slice(0, ctrl.showcolscnt)
-        .map(m_utils.partial(m_utils.repr_cell, [undefined, true]))
+        .map(U.partial(U.repr_cell, [undefined, true]))
         .join(' ');
     if (ctrl.hiddencols) {
         res += ' ...';
@@ -620,7 +620,7 @@ Table.prototype.toString = function (cut) {
         var row = this.rows[i];
         res += '\n' + row
             .slice(0, ctrl.showcolscnt)
-            .map(m_utils.partial(m_utils.repr_cell, [undefined, true]))
+            .map(U.partial(U.repr_cell, [undefined, true]))
             .join(' ');
     }
     if (ctrl.hiddenrows) {

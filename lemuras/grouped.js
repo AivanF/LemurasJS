@@ -1,10 +1,10 @@
 // https://github.com/AivanF/LemurasJS
-var m_utils = require('./utils');
-var m_processing = require('./processing');
-var m_table = require('./table');
+var U = require('./utils');
+var P = require('./processing');
+var T = require('./table');
 
 var Grouped = function (key_columns, source_columns, source_column_indices, source_name) {
-    if (!m_utils.is_string(source_name)) {
+    if (!U.is_string(source_name)) {
         throw new TypeError('Grouped source_name must be a string, but "{}" given'.format(source_name));
     }
     this.source_name = source_name;
@@ -39,7 +39,7 @@ var Grouped = function (key_columns, source_columns, source_column_indices, sour
     if (this.key_count > 0) {
         this.values = {};
     } else {
-        this.values = m_utils.list_of_lists(Object.keys(this.agg_column2ind).length);
+        this.values = U.list_of_lists(Object.keys(this.agg_column2ind).length);
     }
 
     // JS converts dict keys to strings,
@@ -60,7 +60,7 @@ Grouped.prototype.add = function (row) {
         if (!vals[cur]) {
             if (last) {
                 // Store columns independently
-                vals[cur] = m_utils.list_of_lists(Object.keys(this.agg_column2ind).length);
+                vals[cur] = U.list_of_lists(Object.keys(this.agg_column2ind).length);
             } else {
                 // Add one more dict layer
                 vals[cur] = {};
@@ -87,20 +87,20 @@ Grouped.prototype._agglist = function (keys, cols) {
         for (var new_name in this.fun[target_name]) {
             var task = this.fun[target_name][new_name];
             var got;
-            if (m_utils.is_string(task)) {
-                if (m_processing.aggfuns[task]) {
-                    got = m_processing.aggfuns[task](cur_col);
+            if (U.is_string(task)) {
+                if (P.aggfuns[task]) {
+                    got = P.aggfuns[task](cur_col);
                 } else {
                     throw new Error('Aggregation function "{}" does not exist!'.format(task));
                 }
             } else {
-                if (m_utils.is_function(task)) {
+                if (U.is_function(task)) {
                     got = task(cur_col);
                 } else {
                     throw new TypeError('Aggregation function must be a function!');
                 }
             }
-            if (m_utils.is_undefined(got)) {
+            if (U.is_undefined(got)) {
                 throw new Error('Aggregation function returned undefined!');
             }
             res.push(got);
@@ -117,7 +117,7 @@ Grouped.prototype._recurs = function (task, vals, keys, ind) {
     var new_keys;
     if (Array.isArray(vals)) {
         var v = task(keys, vals);
-        if (!m_utils.is_undefined(v)) {
+        if (!U.is_undefined(v)) {
             res.push(v);
         }
     } else {
@@ -136,13 +136,13 @@ Grouped.prototype.agg = function (fun, default_fun) {
             if (!fun[target_name]) {
                 fun[target_name] = {};
             }
-            if (m_utils.is_dict(default_fun)) {
+            if (U.is_dict(default_fun)) {
                 for (var key in default_fun) {
                     fun[target_name]['{}_{}'.format(target_name, key)] = default_fun[key];
                 }
             } else if (Array.isArray(default_fun)) {
                 default_fun.forEach(function (task) {
-                    if (!m_utils.is_string(task)) {
+                    if (!U.is_string(task)) {
                         throw new TypeError('Default functions in an array must be string names!');
                     }
                     fun[target_name]['{}_{}'.format(target_name, task)] = task;
@@ -153,10 +153,10 @@ Grouped.prototype.agg = function (fun, default_fun) {
         }
     }
     for (var target_name in fun) {
-        if (m_utils.is_undefined(this.agg_column2ind[target_name])) {
+        if (U.is_undefined(this.agg_column2ind[target_name])) {
             throw new Error('Cannot aggregate key column "{}"'.format(target_name));
         }
-        if (!m_utils.is_dict(fun[target_name])) {
+        if (!U.is_dict(fun[target_name])) {
             var tmp = {};
             tmp[target_name] = fun[target_name];
             fun[target_name] = tmp;
@@ -173,7 +173,7 @@ Grouped.prototype.agg = function (fun, default_fun) {
     var rows = this._recurs(function (keys, vals) {
         return self._agglist(keys, vals);
     });
-    return new m_table.Table(cols, rows, 'Aggregated ' + this.source_name);
+    return new T.Table(cols, rows, 'Aggregated ' + this.source_name);
 };
 
 Grouped.prototype._make_group = function (keys, cols, add_keys, pairs) {
@@ -185,10 +185,10 @@ Grouped.prototype._make_group = function (keys, cols, add_keys, pairs) {
             ids[this.keys[i]] = keys[i];
         }
     }
-    var res = new m_table.Table([], [], t);
+    var res = new T.Table([], [], t);
     if (add_keys) {
         for (var i = 0; i < this.keys.length; i++) {
-            res.add_column(m_utils.arrayCreate(cols[0].length, keys[i]), this.keys[i]);
+            res.add_column(U.arrayCreate(cols[0].length, keys[i]), this.keys[i]);
         }
     }
     for (var el in this.agg_column2ind) {
@@ -209,7 +209,7 @@ Grouped.prototype.split = function (add_keys, pairs) {
 };
 
 Grouped.prototype.get_group = function (search_keys, add_keys) {
-    if (m_utils.is_undefined(add_keys)) {
+    if (U.is_undefined(add_keys)) {
         add_keys = true;
     }
     // TODO: add support for search_keys as dict
@@ -240,7 +240,7 @@ Grouped.prototype.counts = function () {
         rows.push([].concat(keys).concat([cols[0].length]));
     }
     this._recurs(task);
-    return new m_table.Table([].concat(this.keys).concat(['rows']), rows, 'Groups');
+    return new T.Table([].concat(this.keys).concat(['rows']), rows, 'Groups');
 };
 
 Grouped.prototype.toString = function () {

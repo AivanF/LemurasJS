@@ -21,7 +21,7 @@ function is_int(value) {
 }
 
 function is_float(value) {
-    return parseFloat(value) === value;
+    return Number.isFinite(value);
 }
 
 function is_dict(value) {
@@ -92,6 +92,17 @@ function get_type(data, limit) {
     };
 }
 
+function call_with_numbers_only(task) {
+    function inner(list) {
+        list = list.filter(function (value) {
+            // It must also pass bool values
+            return 0+value == value;
+        });
+        return task(list);
+    }
+    return inner;
+}
+
 function partial(func, defaults) {
     // defaults must be a list with the same length as func arguments
     // skipped arguments must equal undefined
@@ -159,6 +170,7 @@ module.exports = {
     repr_cell: repr_cell,
     get_type: get_type,
     // Utility functions
+    call_with_numbers_only: call_with_numbers_only,
     partial: partial,
     arrayCreate: arrayCreate,
     args2array: args2array,

@@ -1,10 +1,10 @@
 // https://github.com/AivanF/LemurasJS
-var m_utils = require('./utils');
-var m_processing = require('./processing');
+var U = require('./utils');
+var P = require('./processing');
 
 var Row = function (table, row_index, values, columns) {
     if (!values) {
-        if (!table || m_utils.is_nil(row_index)) {
+        if (!table || U.is_nil(row_index)) {
             throw Error('Both table and row_index must be set!');
         }
     } else {
@@ -64,7 +64,7 @@ Row.prototype.get_values = function () {
 
 Row.prototype.get_value = function (column) {
     if (this.values) {
-        if (m_utils.is_string(column)) {
+        if (U.is_string(column)) {
             var ind = this.column_names.indexOf(column);
             if (ind < 0) {
                 throw TypeError('Column {} does not exist!'.format(column));
@@ -79,7 +79,7 @@ Row.prototype.get_value = function (column) {
 
 Row.prototype.set_value = function (column, value) {
     if (this.values) {
-        if (m_utils.is_string(column)) {
+        if (U.is_string(column)) {
             this.values[this.column_names.indexOf(column)] = value;
         } else {
             this.values[column] = value;
@@ -90,19 +90,19 @@ Row.prototype.set_value = function (column, value) {
 };
 
 Row.prototype.get_type = function (column, value) {
-    return m_utils.get_type(this.get_values());
+    return U.get_type(this.get_values());
 };
 
 Row.prototype.calc = function (task, abc) {
-    if (m_utils.is_string(task)) {
-        if (m_processing.aggfuns[task]) {
-            task = m_processing.aggfuns[task];
+    if (U.is_string(task)) {
+        if (P.aggfuns[task]) {
+            task = P.aggfuns[task];
         } else {
             throw Error('Applied function named "{}" does not exist!'.format(task));
         }
     }
     var args = [this.get_values()];
-    args = args.concat( m_utils.args2array(arguments).slice(1) );
+    args = args.concat( U.args2array(arguments).slice(1) );
     return task.apply(null, args);
 };
 
@@ -118,7 +118,7 @@ Row.prototype.copy = function () {
 };
 
 Row.prototype.toString = function () {
-    var values = this.get_values().map(m_utils.partial(m_utils.repr_cell, [undefined, true]));
+    var values = this.get_values().map(U.partial(U.repr_cell, [undefined, true]));
     var res;
     if (!this.values) {
         res = '- Row {} of table "{}"'.format(this.row_index, this.table.title);

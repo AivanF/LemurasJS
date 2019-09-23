@@ -1,13 +1,17 @@
 // https://github.com/AivanF/LemurasJS
-var c = require('./column');
-var r = require('./row');
-var t = require('./table');
-var u = require('./utils');
-var p = require('./processing');
-var f = require('./formula');
+
+// Extend
+var C = require('./column');
+var R = require('./row');
+var T = require('./table');
+// Insert
+var U = require('./utils');
+var P = require('./processing');
+var F = require('./formula');
+
 module.exports = Object.assign({
-	utils: u,
-	processing: p,
-	formula: f,
-	F: f.create_formula,
-}, c, r, t, f);
+	utils: U,
+	processing: P,
+	formula: F,
+	F: F.create_formula,
+}, C, R, T);

@@ -1,5 +1,5 @@
 // https://github.com/AivanF/LemurasJS
-var m_utils = require('./utils');
+var U = require('./utils');
 
 function mode(list) {
     var numMapping = {};
@@ -17,7 +17,7 @@ function mode(list) {
 }
 
 function percentile(list, percent) {
-    if (m_utils.is_undefined(percent)) {
+    if (U.is_undefined(percent)) {
         percent = 0.5;
     }
     list = list.slice(0);
@@ -32,9 +32,9 @@ function percentile(list, percent) {
     }
 }
 
-var Q1 = m_utils.partial(percentile, [undefined, 0.25]);
-var Q2 = m_utils.partial(percentile, [undefined, 0.5]);
-var Q3 = m_utils.partial(percentile, [undefined, 0.75]);
+var Q1 = U.partial(percentile, [undefined, 0.25]);
+var Q2 = U.partial(percentile, [undefined, 0.5]);
+var Q3 = U.partial(percentile, [undefined, 0.75]);
 var median = Q2;
 
 function sum(list) {
@@ -50,11 +50,11 @@ function avg(list) {
 }
 
 function std(list, ddof, mean) {
-    if (m_utils.is_undefined(ddof)) {
+    if (U.is_undefined(ddof)) {
         ddof = 0;
     }
     if (list.length >= 1+ddof) {
-        if (m_utils.is_undefined(mean)) {
+        if (U.is_undefined(mean)) {
             mean = avg(list);
         }
         var s = sum(list.map(function (x) {return Math.pow(x-mean, 2);}));
@@ -110,26 +110,16 @@ function min(list) {
 }
 
 var aggfuns = {
-    // avg: call_with_numbers_only(avg),
-    // mean: call_with_numbers_only(avg),
-    // mode: call_with_numbers_only(mode),
-    // middle: call_with_numbers_only(median),
-    // median: call_with_numbers_only(median),
-    // q1: call_with_numbers_only(Q1),
-    // q2: call_with_numbers_only(Q2),
-    // q3: call_with_numbers_only(Q3),
-    // std: call_with_numbers_only(std),
-    // sum: call_with_numbers_only(sum),
-    avg: avg,
-    mean: avg,
-    mode: mode,
-    middle: median,
-    median: median,
-    q1: Q1,
-    q2: Q2,
-    q3: Q3,
-    std: std,
-    sum: sum,
+    avg: U.call_with_numbers_only(avg),
+    mean: U.call_with_numbers_only(avg),
+    mode: U.call_with_numbers_only(mode),
+    middle: U.call_with_numbers_only(median),
+    median: U.call_with_numbers_only(median),
+    q1: U.call_with_numbers_only(Q1),
+    q2: U.call_with_numbers_only(Q2),
+    q3: U.call_with_numbers_only(Q3),
+    std: U.call_with_numbers_only(std),
+    sum: U.call_with_numbers_only(sum),
 
     nunique: nunique,
     nulls: nulls,
@@ -152,12 +142,12 @@ var aggfuns = {
 
 
 function make_str(value, def) {
-    if (m_utils.is_undefined(def)) {
+    if (U.is_undefined(def)) {
         def = '';
     }
-    if (m_utils.is_string(value)) {
+    if (U.is_string(value)) {
         return value;
-    } else if (!m_utils.is_nil(value)) {
+    } else if (!U.is_nil(value)) {
         return value.toString();
     } else {
         return def;
@@ -165,10 +155,10 @@ function make_str(value, def) {
 }
 
 function parse_int(value, def, hard) {
-    if (m_utils.is_undefined(def)) {
+    if (U.is_undefined(def)) {
         def = 0;
     }
-    if (m_utils.is_undefined(hard)) {
+    if (U.is_undefined(hard)) {
         hard = true;
     }
     var res = Number(value);
@@ -185,7 +175,7 @@ function parse_int(value, def, hard) {
 }
 
 function parse_float(value, def) {
-    if (m_utils.is_undefined(def)) {
+    if (U.is_undefined(def)) {
         def = 0.0;
     }
     var res = Number(value);
@@ -211,12 +201,12 @@ function parse_date_format(_date, _format) {
 }
 
 function parse_date(value, def) {
-    if (m_utils.is_undefined(def)) {
+    if (U.is_undefined(def)) {
         def = null;
     }
     if (value instanceof Date) {
         return value;
-    } else if (m_utils.is_string(value)) {
+    } else if (U.is_string(value)) {
         var res = new Date(value);
         // Try usual JS format firstly
         if (!isNaN(res)) {
@@ -240,11 +230,11 @@ function parse_date(value, def) {
 }
 
 function is_none(value) {
-    return Number.isNaN(value) || m_utils.is_undefined(value) || value === null;
+    return Number.isNaN(value) || U.is_undefined(value) || value === null;
 }
 
 function none_to(value, def) {
-    if (m_utils.is_undefined(def)) {
+    if (U.is_undefined(def)) {
         def = 0;
     }
     if (is_none(value)) {
@@ -264,7 +254,7 @@ var typefuns = {
 
 
 function lengths(value, strings_only) {
-    if (strings_only && !m_utils.is_string(value)) {
+    if (strings_only && !U.is_string(value)) {
         return null;
     } else {
         return value.toString().length;
@@ -287,10 +277,10 @@ var applyfuns = {
         return value instanceof type;
     },
 
-    is_string: m_utils.is_string,
-    is_bool: m_utils.is_bool,
-    is_int: m_utils.is_int,
-    is_float: m_utils.is_float,
+    is_string: U.is_string,
+    is_bool: U.is_bool,
+    is_int: U.is_int,
+    is_float: U.is_float,
 }
 
 

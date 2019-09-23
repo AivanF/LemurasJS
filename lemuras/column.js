@@ -1,6 +1,6 @@
 // https://github.com/AivanF/LemurasJS
-var m_utils = require('./utils');
-var m_processing = require('./processing');
+var U = require('./utils');
+var P = require('./processing');
 
 var Column = function (values, title, table, source_name) {
     this.title = title || 'NoName';
@@ -76,7 +76,7 @@ Column.prototype.get_type = function () {
     } else if (limit > 2048) {
         limit = Math.floor(limit / 2);
     }
-    return m_utils.get_type(this.get_values(), limit);
+    return U.get_type(this.get_values(), limit);
 };
 
 Column.prototype.folds = function (fold_count, start) {
@@ -84,16 +84,16 @@ Column.prototype.folds = function (fold_count, start) {
 };
 
 Column.prototype.apply = function (task, defaults) {
-    if (m_utils.is_string(task)) {
-        if (m_processing.typefuns[task]) {
-            task = m_processing.typefuns[task];
-        } else if (m_processing.applyfuns[task]) {
-            task = m_processing.applyfuns[task];
+    if (U.is_string(task)) {
+        if (P.typefuns[task]) {
+            task = P.typefuns[task];
+        } else if (P.applyfuns[task]) {
+            task = P.applyfuns[task];
         } else {
             throw Error('Applied function named "' + task + '" does not exist!');
         }
     }
-    var defaults = m_utils.args2array(arguments).slice(1);
+    var defaults = U.args2array(arguments).slice(1);
 
 
     for (var i = 0; i < this.rowcnt; i++) {
@@ -104,15 +104,15 @@ Column.prototype.apply = function (task, defaults) {
 };
 
 Column.prototype.calc = function (task, defaults) {
-    if (m_utils.is_string(task)) {
-        if (m_processing.aggfuns[task]) {
-            task = m_processing.aggfuns[task];
+    if (U.is_string(task)) {
+        if (P.aggfuns[task]) {
+            task = P.aggfuns[task];
         } else {
             throw Error('Applied function named "' + task + '" does not exist!');
         }
     }
     var args = [this.get_values()];
-    args = args.concat( m_utils.args2array(arguments).slice(1) );
+    args = args.concat( U.args2array(arguments).slice(1) );
     return task.apply(null, args);
 };
 
@@ -163,7 +163,7 @@ Column.prototype.toString = function () {
         n = 10;
         ns = true;
     }
-    var values = this.get_values().slice(0, n).map(m_utils.partial(m_utils.repr_cell, [undefined, true]));
+    var values = this.get_values().slice(0, n).map(U.partial(U.repr_cell, [undefined, true]));
     var res;
     if (!this.values) {
         res = '- Column "{}" of table "{}", '.format(this.title, this.table.title);

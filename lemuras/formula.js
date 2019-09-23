@@ -1,5 +1,5 @@
 // https://github.com/AivanF/LemurasJS
-var m_utils = require('./utils');
+var U = require('./utils');
 
 var formula_op2 = {
     '&': 'band',
@@ -45,7 +45,7 @@ function extract_names(code) {
         }
         if (i > last) {
             var name = code.slice(last, i);
-            if (!m_utils.isLetter(name[0])) {
+            if (!U.isLetter(name[0])) {
                 return;
             }
             if (names.indexOf(name) >= 0) {
@@ -70,9 +70,9 @@ function extract_names(code) {
                 quote_mode = "'";
             } else if (cur == '.') {
                 property = true;
-            } else if (cur == '_' || m_utils.isLetter(cur)) {
+            } else if (cur == '_' || U.isLetter(cur)) {
                 // pass as a valid symbol
-            } else if (m_utils.isDigit(cur)) {
+            } else if (U.isDigit(cur)) {
                 if (last == i-1) {
                     property = true;
                 } else {
