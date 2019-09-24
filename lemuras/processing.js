@@ -234,7 +234,7 @@ function parse_date(value, def) {
         if (value.indexOf('/') > 0) {
             try {
                 res = parse_date_format(value, 'mm/dd/yy');
-            } catch {
+            } catch (err) {
                 res = parse_date_format(value, 'mm/dd/yyyy');
             }
         } else if (value.indexOf('-') > 0) {
@@ -306,6 +306,7 @@ var applyfuns = {
 
 
 function parse_value(value, empty) {
+    // TODO: make string if b/e == '/' or "/"
     var res = parse_int(value, null, false);
     if (!is_none(res)) {
         return res;

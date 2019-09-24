@@ -29,9 +29,14 @@ LemurasJS is available in console...
 		console.log('' + t);
 		// console.log(t.find_types());
 
-		var g = t.groupby('id');
-		console.log('' + g);
-		console.log(g.counts());
+		console.log(t.to_sql_create());
+		console.log(t.to_sql_values());
+		var t2 = lemuras.Table.from_sql_create(t.to_sql_create());
+		console.log('' + t2);
+
+		// var g = t.groupby('id');
+		// console.log('' + g);
+		// console.log(g.counts());
 		// console.log(g.get_group(1));
 		// console.log(g.split(true, true));
 		// console.log(g.agg({'name': 'count'}));

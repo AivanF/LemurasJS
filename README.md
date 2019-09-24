@@ -36,8 +36,8 @@ The library is under development now. Currently, you can see all the examples in
 ✅ Table.groupby  
 ✅ Table.pivot  
 ✅ Table.merge  
+✅ Table.to/from SQL  
 ❌ Table.to/from CSV  
-❌ Table.to/from SQL  
 ❌ Table.to/from JSON  
 ❌ Table.to/from HTML  
 ❌ Imporve & test Formula  

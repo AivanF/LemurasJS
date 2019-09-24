@@ -625,15 +625,99 @@ Table.prototype.to_csv = function (delimiter, quotechar) {
 };
 
 Table.prototype.to_sql_create = function () {
-    throw new Error('Not implemented!');
+    function sql_type(tp, ln) {
+        if (tp == 'i') {
+            if (ln <= 4) {
+                return 'int(1)';
+            } else if (ln <= 6) {
+                return 'int(2)';
+            } else if (ln <= 9) {
+                return 'int(3)';
+            } else if (ln <= 11) {
+                return 'int(4)';
+            } else {
+                return 'int(8)';
+            }
+        }
+        if (tp == 'f') {
+            return 'float';
+        }
+        if (tp == 'd') {
+            return 'datetime';
+        }
+        return 'varchar(' + ln + ')'
+    }
+    this.find_types();
+    var res = 'CREATE TABLE `{}` ('.format(this.title);
+    var firstrow = true;
+    this.types.rows.forEach(function (row) {
+        if (firstrow) {
+            firstrow = false;
+            res += '\n';
+        } else {
+            res += ',\n';
+        }
+        res += '  `' + row[0] + '` ' + sql_type(row[1], row[2]);
+    });
+    res += '\n) ;';
+    return res;
 };
 
 Table.prototype.to_sql_values = function () {
-    throw new Error('Not implemented!');
+    this.find_types();
+    if (this.rowcnt < 1) {
+        return '';
+    }
+    var res = 'INSERT INTO `{}` VALUES '.format(this.title);
+    var firstrow = true;
+    var i, firstcell, ctp;
+    var self = this;
+    this.rows.forEach(function (row) {
+        if (firstrow) {
+            firstrow = false;
+        } else {
+            res += ', '
+        }
+        firstcell = true;
+        res += '('
+        for (i = 0; i < self.colcnt; i++) {
+            if (firstcell) {
+                firstcell = false;
+            } else {
+                res += ',';
+            }
+            ctp = self.types.cell(1, i);
+            if (ctp == 's' || ctp == 'm' || ctp == 'd') {
+                res += "'" + row[i] + "'";
+            } else {
+                res += '' + row[i];
+            }
+        }
+        res += ')';
+    });
+    res += ';';
+    return res;
 };
 
 Table.from_sql_create = function (data) {
-    throw new Error('Not implemented!');
+    data = data.replaceAll('\n', ' ');
+    var title = data.split('(')[0].split(' ').filter(U.lalepo);
+    title = title[title.length-1].replaceAll('`', '');
+    var columns = [];
+    var b = data.indexOf('(') + 1;
+    var tps = data.slice(b).split(',');
+    var ch;
+    tps.forEach(function (el) {
+        ch = el.toLowerCase();
+        if (ch.indexOf(' int') >= 0 || ch.indexOf(' float') >= 0 ||
+            ch.indexOf(' date') >= 0 || ch.indexOf(' text') >= 0 ||
+            ch.indexOf('char(') >= 0) {
+                columns.push(
+                    el.split(' ').filter(U.lalepo)[0].replaceAll('`', '')
+                );
+        }
+    });
+    return new Table(columns, [], title);
 };
 
 Table.from_sql_result = function (data, empty, preprocess, title) {
@@ -646,14 +730,67 @@ Table.from_sql_result = function (data, empty, preprocess, title) {
     if (U.is_undefined(empty)) {
         empty = null;
     }
-    throw new Error('Not implemented!');
+    data = data.trim();
+    if (data[0] == '+') {
+        data = data.slice(data.indexOf('\n') + 1);
+    }
+    var columns = data.slice(0, data.indexOf('\n'));
+    columns = columns.split('|');
+    columns = columns.slice(1, columns.length-1);
+    columns = columns.map(function (x) {
+        return x.trim();
+    });
+    data = data.slice(data.indexOf('\n') + 1);
+    data = data.split('\n');
+    data = data.slice(1, data.length-1);
+    var rows = [];
+    var cur;
+    data.forEach(function (ln) {
+        cur = ln.split('|');
+        cur = cur.slice(1, cur.length-1);
+        cur = cur.map(function (x) {
+            return x.trim();
+        });
+        if (preprocess) {
+            cur = P.parse_row(cur, empty);
+        }
+        rows.push(cur);
+    });
+    return new Table(columns, rows, title);
 };
 
 Table.prototype.add_sql_values = function (data, empty) {
     if (U.is_undefined(empty)) {
         empty = null;
     }
-    throw new Error('Not implemented!');
+    function cutstr(x) {
+        if (x.length > 1) {
+            if (x[x.length-1] == ',') {
+                x = x.slice(0, x.length-1);
+            }
+        }
+        if (x.length > 1) {
+            if (x[0] == "'" && x[x.length-1] == "'") {
+                return x.slice(1, x.length-1);
+            }
+        }
+        return x;
+    }
+    var p = /(\d+|'.*?')\s*,?/g
+    var b, e, cur;
+    while (true) {
+        b = data.indexOf('(') + 1;
+        e = data.indexOf(')');
+        if (b > 0 && e > b) {
+            cur = data.slice(b, e).match(p);
+            cur = cur.map(cutstr);
+            cur = P.parse_row(cur, empty);
+            this.add_row(cur);
+            data = data.slice(e + 1);
+        } else {
+            break;
+        }
+    }
 };
 
 Table.from_json = function (data, preprocess, title) {
