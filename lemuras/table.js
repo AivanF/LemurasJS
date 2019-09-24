@@ -461,7 +461,134 @@ Table.merge = function (tl, tr, keys, how, empty) {
     if (U.is_undefined(empty)) {
         empty = null;
     }
-    throw new Error('Not implemented!');
+    var doleft = (how == 'left') || (how == 'outer');
+    var doright = (how == 'right') || (how == 'outer');
+    if (!Array.isArray(keys)) {
+        keys = [keys];
+    }
+    var rescol = [];
+    var resrow = [];
+    var i, j, tokey;
+
+    // Key index to left keys
+    var key2leftcol = U.arrayCreate(keys.length, 0);
+    // TODO: simplify with column_indices
+    for (i = 0; i < tl.colcnt; i++) {
+        for (j = 0; j < keys.length; j++) {
+            if (tl.columns[i] == keys[j]) {
+                key2leftcol[j] == i;
+            }
+        }
+        rescol.push(tl.columns[i]);
+    }
+
+    // Right keys to key index
+    var rightcol2key = [];
+    // TODO: simplify with column_indices
+    for (i = 0; i < tr.colcnt; i++) {
+        tokey = null;
+        for (j = 0; j < keys.length; j++) {
+            if (tr.columns[i] == keys[j]) {
+                tokey = j;
+                break;
+            }
+        }
+        if (tokey == null) {
+            rescol.push(tr.columns[i]);
+        }
+        rightcol2key.push(tokey);
+    }
+
+    var usedrowsleft = U.arrayCreate(tl.rowcnt, false);
+    var usedrowsright = U.arrayCreate(tr.rowcnt, false);
+    var row_index, r2_index, rl, rr, match, row, column_index;
+
+    for (row_index = 0; row_index < tl.rowcnt; row_index++) {
+        rl = tl.rows[row_index];
+        for (r2_index = 0; r2_index < tr.rowcnt; r2_index++) {
+            rr = tr.rows[r2_index];
+            match = true;
+            // Check all keys are the same
+            for (i = 0; i < keys.length; i++) {
+                if (rl[tl.column_indices[keys[i]]] != rr[tr.column_indices[keys[i]]]) {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match) {
+                // Mark the matched rows
+                // so they won't be used in left / right / outer
+                usedrowsleft[row_index] = true;
+                usedrowsright[r2_index] = true;
+
+                row = [];
+                // Add all the left side
+                for (i = 0; i < rl.length; i++) {
+                    row.push(rl[i]);
+                }
+                // Add right side if not keys
+                // they are already in left side
+                for (column_index = 0; column_index < tr.colcnt; column_index++) {
+                    if (rightcol2key[column_index] == null) {
+                        row.push(rr[column_index]);
+                    }
+                }
+                resrow.push(row);
+            }
+        }
+    }
+
+    if (doleft) {
+        for (row_index = 0; row_index < tl.rowcnt; row_index++) {
+            // Add the row if it wasn't used in inner
+            if (!usedrowsleft[row_index]) {
+                row = [];
+                // Fill left side with values
+                rl = tl.rows[row_index];
+                for (i = 0; i < rl.length; i++) {
+                    row.push(rl[i]);
+                }
+                // Fill right side with empty
+                for (column_index = 0; column_index < tr.colcnt; column_index++) {
+                    // Key are already in the left side
+                    if (rightcol2key[column_index] == null) {
+                        // If not a key, just add the value
+                        row.push(empty);
+                    }
+                }
+                resrow.push(row);
+            }
+        }
+    }
+
+    if (doright) {
+        for (row_index = 0; row_index < tr.rowcnt; row_index++) {
+            // Add the row if it wasn't used in inner
+            if (!usedrowsright[row_index]) {
+                row = [];
+                // Fill left side with empty
+                for (column_index = 0; column_index < tl.colcnt; column_index++) {
+                    row.push(empty);
+                }
+                rr = tr.rows[row_index];
+                // Fill right side with values
+                for (column_index = 0; column_index < tr.colcnt; column_index++) {
+                    if (rightcol2key[column_index] == null) {
+                        // If not a key, just add the value
+                        row.push(rr[column_index]);
+                    } else {
+                        // If a key, put it in the left side
+                        row[rightcol2key[column_index]] = rr[column_index];
+                    }
+                }
+                resrow.push(row);
+            }
+        }
+    }
+
+    var title = 'Merged {} {} & {}'.format(how, tl.title, tr.title);
+    return new Table(rescol, resrow, title);
 };
 
 Table.prototype.folds = function (fold_count, start) {
