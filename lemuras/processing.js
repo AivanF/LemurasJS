@@ -194,9 +194,23 @@ function parse_date_format(_date, _format) {
     var monthIndex = formatItems.indexOf("mm");
     var dayIndex = formatItems.indexOf("dd");
     var yearIndex = formatItems.indexOf("yyyy");
+    if (yearIndex < 0) {
+        yearIndex = formatItems.indexOf("yy");
+        year = parseInt(dateItems[yearIndex]);
+        if (year > 99) {
+            throw new Error('Bad year of date {} for format {}'.format(_date, _format));
+        }
+        if (year > 50) {
+            year += 1900;
+        } else {
+            year += 2000;
+        }
+    } else {
+        year = parseInt(dateItems[yearIndex]);
+    }
     var month = parseInt(dateItems[monthIndex]);
     month -= 1;
-    var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex]);
+    var formatedDate = new Date(year,month,dateItems[dayIndex]);
     return formatedDate;
 }
 
@@ -209,13 +223,20 @@ function parse_date(value, def) {
     } else if (U.is_string(value)) {
         var res = new Date(value);
         // Try usual JS format firstly
-        if (!isNaN(res)) {
-            return res;
+        if (parse_float(value, null) === null) {
+            if (!isNaN(res)) {
+                return res;
+            }
         }
+        res = NaN;
         // TODO: add support for time
         value = value.split(' ')[0];
         if (value.indexOf('/') > 0) {
-            res = parse_date_format(value, 'mm/dd/yyyy');
+            try {
+                res = parse_date_format(value, 'mm/dd/yy');
+            } catch {
+                res = parse_date_format(value, 'mm/dd/yyyy');
+            }
         } else if (value.indexOf('-') > 0) {
             res = parse_date_format(value, 'yyyy-mm-dd');
         } else if (value.indexOf('.') > 0) {

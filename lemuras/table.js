@@ -265,7 +265,7 @@ Table.prototype.find_types = function (row_index) {
     var key, t;
     for (var i = 0; i < this.colcnt; i++) {
         key = this._columns[i];
-        t = this.column(key).get_type()
+        t = this.column(key).get_type();
         rows.push([key, t.type, t.length]);
     }
     this.types = new Table(['Column', 'Type', 'Symbols'], rows, 'Types');
@@ -408,7 +408,7 @@ Table.prototype.pivot = function (newcol, newrow, newval, empty, task) {
     var indval = this.column_indices[newval];
     var colsels = [];
     var rowsels = [];
-    // Dictionary with columns->rows->values
+    // Dictionary with columns -> rows -> values
     var values = {};
 
     // Fill the dictionary

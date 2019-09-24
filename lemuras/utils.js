@@ -58,7 +58,7 @@ function get_type(data, limit) {
             break;
         }
         el = data[i];
-        ln = Math.max(ln, ('' + el).toString().length);
+        ln = Math.max(ln, ('' + el).length);
 
         if (is_bool(el)) {
             kind = 'b';
@@ -90,6 +90,11 @@ function get_type(data, limit) {
         type: tp,
         length: ln,
     };
+}
+
+// LAmbda LEngth POsitive
+function lalepo(x) {
+    return x.length > 0;
 }
 
 function call_with_numbers_only(task) {
@@ -170,6 +175,7 @@ module.exports = {
     repr_cell: repr_cell,
     get_type: get_type,
     // Utility functions
+    lalepo: lalepo,
     call_with_numbers_only: call_with_numbers_only,
     partial: partial,
     arrayCreate: arrayCreate,
